@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Página con Needle Widget</title>
+  <!-- Agrega el script del widget de Needle en el head -->
+  <script src="https://cdn.needle.app/widget/v2/main.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    .contenido {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenido">
+    <h1>Bienvenido al Chatbot prototipo de EXCELIA DESARROLLOS</h1>
+    <p>Esta es una página de ejemplo con el widget de Needle integrado.</p>
+  </div>
+
+  <!-- Agrega el widget de Needle aquí -->
+  <needle-embedded-widget
+    client-key="clk_01KAESFT47VNY3ZBMRZKP13CB8"
+    collection-id="clt_01K9EWFNC1P2VN5FC3MAWGK8NM"
+    title="Chatea con nuestro asistente virtual"
+    initial-message="¡Hola! ¿En qué puedo ayudarte?"
+    theme="system"
+  ></needle-embedded-widget>
+
+</body>
+</html>
