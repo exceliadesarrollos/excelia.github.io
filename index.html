@@ -6,6 +6,10 @@
   <!-- Agrega el script del widget de Needle en el head -->
   <script src="https://cdn.needle.app/widget/v2/main.js"></script>
   <style>
+    needle-embedded-widget::part(chat-container) {
+      max-height: 500px;   /* Ajusta el valor según tu preferencia */
+      overflow-y: auto;
+    }
     body {
       font-family: Arial, sans-serif;
       margin: 40px;
@@ -38,3 +42,4 @@
 </body>
 
 </html>
+
