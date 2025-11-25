@@ -9,12 +9,17 @@
     needle-embedded-widget::part(chat-container) {
       max-height: 500px;   /* Ajusta el valor según tu preferencia */
       overflow-y: auto;
-      theme="light"
+      background: #fff;
     }
     needle-embedded-widget::part(message-content) {
       white-space: pre-wrap;
     }
-    
+
+/* Globo de chat de la IA en gris */
+needle-embedded-widget::part(chat-message-ai) {
+  background: #e0e0e0;
+  color: #222; /* Opcional: color de texto para mejor contraste */
+}
     body {
       font-family: Arial, sans-serif;
       margin: 40px;
@@ -30,7 +35,7 @@
 </head>
 <body>
   <div class="contenido">
-    <img src="Excelia Desarrollos Logo.jpg" alt="Logo Excelia" style="width: 250px; height: auto;">
+    <img src="Excelia Desarrollos Logo.jpg" alt="Logo Excelia" style="width: 200px; height: auto;">
     <h1>Bienvenido al Chatbot de Asistencia al Usuario de EXCELIA DESARROLLOS</h1>
   </div>
 
@@ -47,6 +52,7 @@
 </body>
 
 </html>
+
 
 
 
