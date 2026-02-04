@@ -5,11 +5,8 @@
     <script src="https://cdn.needle.app/widget/v2/main.js"></script>
   </head>
   <body>
-    <needle-embedded-widget
-      client-key="clk_01KGMDHKDQR0MEPMTSC5ENH3QM"
-    collection-id="clt_01KFJQCSEHMQ7BBSE1WAQ6792Z"
-      initial-message="¡Hola! ¿En qué puedo ayudarte?"
-      theme="system">
-    </needle-embedded-widget>
+    <button onclick="window.needle.openModal({ clientKey: "clk_01KGMDHKDQR0MEPMTSC5ENH3QM", collectionId: "clt_01KFJQCSEHMQ7BBSE1WAQ6792Z" })">
+    Open Widget
+</button>
   </body>
 </html>
