@@ -1,12 +1,27 @@
 <!doctype html>
-<html>
+<html lang="es">
   <head>
     <meta charset="utf-8" />
-    <script src="https://cdn.needle.app/widget/v2/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script defer src="https://cdn.needle.app/widget/v2/main.js"></script>
+    <title>Needle Widget</title>
   </head>
+
   <body>
-    <button onclick="window.needle.openModal({ clientKey: "clk_01KGMDHKDQR0MEPMTSC5ENH3QM", collectionId: "clt_01KFJQCSEHMQ7BBSE1WAQ6792Z" })">
-    Open Widget
-</button>
+    <button id="open-needle">Open Widget</button>
+
+    <script>
+      document.getElementById("open-needle").addEventListener("click", function () {
+        if (!window.needle) {
+          console.error("Needle widget todavía no cargó.");
+          return;
+        }
+
+        window.needle.openModal({
+          clientKey: "clk_01KGMDHKDQR0MEPMTSC5ENH3QM",
+          collectionId: "clt_01KFJQCSEHMQ7BBSE1WAQ6792Z",
+        });
+      });
+    </script>
   </body>
 </html>
