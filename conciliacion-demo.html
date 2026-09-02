@@ -1,0 +1,1699 @@
+<title>Agente de Conciliación</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#F1EEE5;
+    --surface:#FFFFFF;
+    --surface-2:#E9E2D2;
+    --surface-3:#DFD5BE;
+    --ink:#20261F;
+    --ink-soft:#5B6459;
+    --ink-faint:#8B9184;
+    --line:#D6CDB8;
+    --line-soft:#E3DCC9;
+    --accent:#C24A1C;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#F3DCCB;
+    --blueprint:#1F4E5F;
+    --blueprint-soft:#D9E6E6;
+    --success:#2E7D4F;
+    --success-soft:#DCEEE1;
+    --warning:#B8862B;
+    --warning-soft:#F4E7CB;
+    --critical:#B23A2E;
+    --critical-soft:#F5DBD6;
+    --shadow:0 1px 2px rgba(32,38,31,0.06), 0 8px 24px -12px rgba(32,38,31,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100D;
+      --surface:#1B1815;
+      --surface-2:#232019;
+      --surface-3:#2E2A21;
+      --ink:#EDE7D9;
+      --ink-soft:#B3AB98;
+      --ink-faint:#7C7566;
+      --line:#39352A;
+      --line-soft:#2A2720;
+      --accent:#E27142;
+      --accent-ink:#1B1815;
+      --accent-soft:#3A2418;
+      --blueprint:#7FB4C4;
+      --blueprint-soft:#1C2E31;
+      --success:#5FBF87;
+      --success-soft:#193226;
+      --warning:#E0AC4F;
+      --warning-soft:#332711;
+      --critical:#E2695C;
+      --critical-soft:#33201D;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100D;
+    --surface:#1B1815;
+    --surface-2:#232019;
+    --surface-3:#2E2A21;
+    --ink:#EDE7D9;
+    --ink-soft:#B3AB98;
+    --ink-faint:#7C7566;
+    --line:#39352A;
+    --line-soft:#2A2720;
+    --accent:#E27142;
+    --accent-ink:#1B1815;
+    --accent-soft:#3A2418;
+    --blueprint:#7FB4C4;
+    --blueprint-soft:#1C2E31;
+    --success:#5FBF87;
+    --success-soft:#193226;
+    --warning:#E0AC4F;
+    --warning-soft:#332711;
+    --critical:#E2695C;
+    --critical-soft:#33201D;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Big Shoulders Display',system-ui,sans-serif;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    text-wrap:balance;
+    margin:0;
+  }
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+
+  /* ---------- Header ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:40;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1400px;margin:0 auto;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 28px;gap:20px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:40px;height:40px;border-radius:6px;
+    background:linear-gradient(155deg,var(--ink) 0%, #3A4238 100%);
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .brand-mark svg{width:24px;height:24px;}
+  .brand-text h1{font-size:20px;letter-spacing:0.04em;line-height:1;}
+  .brand-text span{font-size:11px;color:var(--ink-soft);letter-spacing:0.08em;text-transform:uppercase;}
+  .topbar-status{display:flex;align-items:center;gap:22px;}
+  .agent-pill{
+    display:flex;align-items:center;gap:8px;
+    background:var(--success-soft);color:var(--success);
+    padding:7px 12px 7px 10px;border-radius:100px;
+    font-size:12.5px;font-weight:600;letter-spacing:0.01em;
+  }
+  .agent-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex:none;}
+  @media (prefers-reduced-motion:no-preference){
+    .agent-pill .dot{animation:pulse 1.8s ease-in-out infinite;}
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(46,125,79,0.45);}50%{box-shadow:0 0 0 5px rgba(46,125,79,0);}}
+  .topbar-clock{font-size:12px;color:var(--ink-faint);}
+  .topbar-clock .mono{color:var(--ink-soft);}
+
+  .wrap{max-width:1400px;margin:0 auto;padding:26px 28px 80px;}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:26px;border-bottom:1px solid var(--line);margin-bottom:22px;}
+  .tab-btn{
+    padding:0 0 11px;background:none;border:none;cursor:pointer;
+    font-family:'Big Shoulders Display';font-weight:700;font-size:15.5px;letter-spacing:0.03em;
+    text-transform:uppercase;color:var(--ink-faint);border-bottom:2.5px solid transparent;
+    margin-bottom:-1px;transition:color .12s, border-color .12s;
+  }
+  .tab-btn:hover{color:var(--ink-soft);}
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ---------- Controls row (period) ---------- */
+  .controls-row{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .controls-row h2{font-size:20px;}
+  .period-select{display:flex;align-items:center;gap:9px;}
+  .period-select label{font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-faint);font-weight:600;}
+  .period-select select{width:auto;min-width:200px;padding:8px 10px;}
+
+  /* ---------- KPI strip ---------- */
+  .kpis{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;
+  }
+  .kpi{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;display:flex;flex-direction:column;gap:6px;
+  }
+  .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-faint);font-weight:600;}
+  .kpi-value{font-family:'Big Shoulders Display';font-size:30px;font-weight:800;line-height:1;}
+  .kpi-value.accent{color:var(--accent);}
+  .kpi-value.success{color:var(--success);}
+  .kpi-value.warning{color:var(--warning);}
+  .kpi-sub{font-size:12px;color:var(--ink-soft);}
+
+  /* ---------- Pipeline ---------- */
+  .pipeline{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:20px 24px;margin-bottom:24px;
+    display:flex;align-items:center;gap:6px;overflow-x:auto;
+  }
+  .pipeline-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:600;
+    writing-mode:vertical-rl;transform:rotate(180deg);flex:none;margin-right:8px;
+  }
+  .pstage{
+    display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;width:128px;text-align:center;
+  }
+  .pstage-icon{
+    width:52px;height:52px;border-radius:10px;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+  }
+  .pstage-icon svg{width:24px;height:24px;stroke:var(--ink-soft);}
+  .pstage.core .pstage-icon{background:var(--ink);border-color:var(--ink);}
+  .pstage.core .pstage-icon svg{stroke:var(--bg);}
+  .pstage-label{font-size:12.5px;font-weight:600;}
+  .pstage-sub{font-size:10.5px;color:var(--ink-faint);}
+  .pconnector{
+    flex:1 1 32px;min-width:24px;height:2px;position:relative;
+    background:repeating-linear-gradient(90deg,var(--line-soft) 0 6px, transparent 6px 11px);
+    align-self:center;margin-top:-30px;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .pconnector{background-size:22px 2px;animation:flow 1.2s linear infinite;}
+  }
+  @keyframes flow{to{background-position:-22px 0;}}
+
+  /* ---------- Layout ---------- */
+  .board{display:grid;grid-template-columns:252px 1fr;gap:20px;align-items:start;}
+  @media (max-width:980px){.board{grid-template-columns:1fr;}}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  }
+  .filters{padding:18px 16px;position:sticky;top:78px;display:flex;flex-direction:column;gap:20px;}
+  .filter-group h4{font-size:11px;color:var(--ink-faint);letter-spacing:0.07em;margin-bottom:9px;}
+  .chip-list{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    font-size:12px;padding:5px 10px;border-radius:100px;cursor:pointer;font-weight:500;
+    transition:background .12s, color .12s, border-color .12s;
+  }
+  .chip:hover{border-color:var(--ink-faint);}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+  .chip.state-conciliada.active{background:var(--success);border-color:var(--success);color:#fff;}
+  .chip.state-diferencias.active{background:var(--critical);border-color:var(--critical);color:#fff;}
+  .chip.state-procesando.active{background:var(--blueprint);border-color:var(--blueprint);color:#fff;}
+  select, input[type="text"]{
+    width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;
+    padding:8px 10px;font-size:13px;color:var(--ink);font-family:inherit;
+  }
+  .search-box{position:relative;}
+  .search-box svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--ink-faint);}
+  .search-box input{padding-left:29px;}
+
+  .rules-toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+    padding:10px 12px;cursor:pointer;font-size:12.5px;font-weight:600;
+  }
+  .rules-toggle svg{width:15px;height:15px;stroke:var(--ink-soft);transition:transform .15s;}
+  .rules-toggle.open svg{transform:rotate(90deg);}
+  .rules-body{display:none;flex-direction:column;gap:16px;padding-top:4px;}
+  .rules-body.open{display:flex;}
+  .rule-row{display:flex;flex-direction:column;gap:5px;}
+  .rule-row label{font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;}
+  .rule-row label b{color:var(--ink);font-family:'IBM Plex Mono';font-weight:600;}
+  input[type="range"]{
+    -webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--surface-3);
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);
+    border:2px solid var(--surface);box-shadow:0 0 0 1px var(--accent);cursor:pointer;margin-top:-1px;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);
+    box-shadow:0 0 0 1px var(--accent);cursor:pointer;
+  }
+  .rules-note{font-size:11px;color:var(--ink-faint);line-height:1.5;border-top:1px dashed var(--line);padding-top:12px;}
+  .rules-reset{
+    align-self:flex-start;font-size:11.5px;color:var(--accent);background:none;border:none;
+    cursor:pointer;font-weight:600;padding:0;
+  }
+
+  /* ---------- List header ---------- */
+  .list-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap;}
+  .list-count{font-size:13px;color:var(--ink-soft);}
+  .list-count b{color:var(--ink);}
+  .list-hint{font-size:11.5px;color:var(--ink-faint);}
+
+  /* ---------- Invoice table ---------- */
+  .table-wrap-main{
+    overflow-x:auto;border:1px solid var(--line);border-radius:12px;
+    background:var(--surface);box-shadow:var(--shadow);
+  }
+  table.inv-table{width:100%;border-collapse:collapse;font-size:13px;min-width:840px;}
+  .inv-table thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);
+    padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);
+    cursor:pointer;user-select:none;white-space:nowrap;font-weight:600;
+  }
+  .inv-table thead th:first-child{border-top-left-radius:11px;}
+  .inv-table thead th:last-child{border-top-right-radius:11px;}
+  .inv-table thead th.num{text-align:right;}
+  .inv-table thead th .sort-arrow{display:inline-block;margin-left:4px;font-size:9px;opacity:0.3;}
+  .inv-table thead th.sorted .sort-arrow{opacity:1;color:var(--accent);}
+  .inv-table tbody tr{cursor:pointer;border-bottom:1px solid var(--line-soft);transition:background .1s;}
+  .inv-table tbody tr:last-child{border-bottom:none;}
+  .inv-table tbody tr:hover{background:var(--surface-2);}
+  .inv-table tbody tr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+  .inv-table td{padding:10px 14px;vertical-align:middle;}
+  .inv-table td.num{text-align:right;font-family:'IBM Plex Mono';}
+  .table-prov-cell{display:flex;align-items:center;gap:10px;}
+  .table-prov-cell .logo-badge{width:34px;height:34px;border-radius:7px;flex:none;}
+  .table-prov-cell .names{display:flex;flex-direction:column;min-width:0;}
+  .table-prov-cell .names .n{font-weight:600;font-size:13px;}
+  .table-prov-cell .names .r{font-size:10.5px;color:var(--ink-faint);}
+  .table-oc-cell{display:flex;flex-direction:column;font-family:'IBM Plex Mono';font-size:12px;color:var(--ink-soft);}
+  .table-oc-cell .fac{color:var(--ink);}
+  .table-status-cell{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+  .table-diff-tags{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;}
+
+  .status-pill{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    padding:5px 10px;border-radius:100px;white-space:nowrap;
+  }
+  .status-pill svg{width:12px;height:12px;flex:none;}
+  .status-pill.conciliada{background:var(--success-soft);color:var(--success);}
+  .status-pill.diferencias{background:var(--critical-soft);color:var(--critical);}
+  .status-pill.procesando{background:var(--blueprint-soft);color:var(--blueprint);}
+  .status-pill.procesando svg{animation:spin 1.6s linear infinite;}
+  @media (prefers-reduced-motion:reduce){.status-pill.procesando svg{animation:none;}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .diff-tag{font-size:10px;font-weight:600;color:var(--critical);background:var(--critical-soft);padding:2px 6px;border-radius:5px;white-space:nowrap;}
+
+  .empty-state{padding:60px 20px;text-align:center;color:var(--ink-faint);font-size:14px;}
+
+  /* ---------- Drawer ---------- */
+  .scrim{
+    position:fixed;inset:0;background:rgba(20,17,12,0.45);z-index:60;
+    opacity:0;pointer-events:none;transition:opacity .18s;
+  }
+  .scrim.open{opacity:1;pointer-events:auto;}
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;width:min(560px,94vw);
+    background:var(--surface);z-index:61;box-shadow:-12px 0 40px -12px rgba(0,0,0,0.35);
+    transform:translateX(100%);transition:transform .2s ease;
+    display:flex;flex-direction:column;
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{
+    padding:20px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start;
+  }
+  .drawer-head .logo-badge{width:46px;height:46px;font-size:13px;}
+  .drawer-head-text{flex:1;min-width:0;}
+  .drawer-head-text h3{font-size:19px;}
+  .drawer-head-text .sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
+  .drawer-close{
+    background:var(--surface-2);border:1px solid var(--line);width:30px;height:30px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;
+  }
+  .drawer-close svg{width:15px;height:15px;stroke:var(--ink-soft);}
+  .drawer-body{padding:20px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:22px;}
+
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;}
+  .meta-grid div{display:flex;flex-direction:column;gap:3px;}
+  .meta-grid .label{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);}
+  .meta-grid .val{font-size:13px;font-weight:500;}
+  .meta-grid .val.mono{font-family:'IBM Plex Mono';}
+
+  .diagnosis{
+    border-radius:9px;padding:14px 15px;font-size:13px;line-height:1.55;display:flex;gap:10px;
+  }
+  .diagnosis svg{width:17px;height:17px;flex:none;margin-top:1px;}
+  .diagnosis.conciliada{background:var(--success-soft);color:var(--success);}
+  .diagnosis.diferencias{background:var(--critical-soft);color:var(--critical);}
+  .diagnosis.procesando{background:var(--blueprint-soft);color:var(--blueprint);}
+  .diagnosis b{font-weight:700;}
+  .diagnosis span{color:var(--ink);}
+
+  .sect-title{font-size:12px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-faint);font-weight:600;margin-bottom:10px;}
+  table.items-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .items-table thead th{
+    text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-faint);
+    padding:0 8px 7px;border-bottom:1px solid var(--line);font-weight:600;
+  }
+  .items-table thead th.num{text-align:right;}
+  .items-table td{padding:9px 8px;border-bottom:1px solid var(--line-soft);vertical-align:top;}
+  .items-table td.num{text-align:right;font-family:'IBM Plex Mono';}
+  .items-table tr:last-child td{border-bottom:none;}
+  .items-table .item-name{font-weight:500;}
+  .delta{font-size:11px;font-weight:600;display:block;margin-top:2px;}
+  .delta.bad{color:var(--critical);}
+  .delta.ok{color:var(--success);}
+  .row-flag{background:var(--critical-soft);}
+  .table-wrap{overflow-x:auto;border-radius:8px;}
+
+  .terms-compare{display:flex;gap:10px;}
+  .term-card{
+    flex:1;border:1px solid var(--line);border-radius:9px;padding:12px 14px;
+  }
+  .term-card .k{font-size:10px;text-transform:uppercase;color:var(--ink-faint);letter-spacing:0.06em;}
+  .term-card .v{font-family:'IBM Plex Mono';font-size:15px;font-weight:600;margin-top:4px;}
+  .term-card.flag{border-color:var(--critical);background:var(--critical-soft);}
+  .term-card.flag .v{color:var(--critical);}
+  .term-arrow{display:flex;align-items:center;color:var(--ink-faint);}
+  .term-arrow svg{width:16px;height:16px;}
+
+  .channel-trace{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);}
+  .channel-trace svg{width:15px;height:15px;stroke:var(--ink-soft);}
+
+  /* ---------- Stats tab ---------- */
+  .stats-intro{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .stats-intro p{font-size:13px;color:var(--ink-soft);margin:0;}
+  .reorder-hint{
+    display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-faint);
+    background:var(--surface-2);border:1px solid var(--line);border-radius:100px;padding:6px 12px;margin-bottom:18px;
+  }
+  .reorder-hint svg{width:13px;height:13px;flex:none;}
+
+  #stats-grid{display:flex;flex-direction:column;gap:16px;}
+  .stat-panel{padding:20px 22px 22px;position:relative;}
+  .stat-panel.dragging{opacity:0.4;}
+  .stat-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;}
+  .stat-panel-head h4{font-size:14px;text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans';font-weight:600;margin:0;}
+  .drag-handle{
+    cursor:grab;color:var(--ink-faint);flex:none;padding:4px;border-radius:5px;
+    display:flex;align-items:center;
+  }
+  .drag-handle:hover{color:var(--ink-soft);background:var(--surface-2);}
+  .drag-handle svg{width:16px;height:16px;}
+  .drag-handle:active{cursor:grabbing;}
+
+  .bar-row{display:grid;grid-template-columns:150px 1fr 90px;align-items:center;gap:10px;margin-bottom:10px;font-size:12.5px;}
+  .bar-row:last-child{margin-bottom:0;}
+  .bar-track{height:9px;background:var(--surface-2);border-radius:5px;overflow:hidden;cursor:default;}
+  .bar-fill{height:100%;border-radius:5px;}
+  .bar-row .num{text-align:right;font-family:'IBM Plex Mono';color:var(--ink-soft);}
+
+  .donut-wrap{display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+  .donut-legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;}
+  .donut-legend .sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:7px;}
+  .donut-legend div{display:flex;align-items:center;}
+  .donut-legend .n{margin-left:auto;font-family:'IBM Plex Mono';color:var(--ink-soft);padding-left:14px;}
+  #donut circle{cursor:default;}
+
+  .top-issues{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+  .issue-row{display:flex;align-items:center;gap:10px;font-size:12.5px;cursor:default;}
+  .issue-row .badge{
+    width:20px;height:20px;border-radius:5px;background:var(--critical-soft);color:var(--critical);
+    display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-size:11px;font-weight:600;flex:none;
+  }
+  .issue-row .txt{flex:1;}
+  .issue-row .amt{font-family:'IBM Plex Mono';color:var(--ink-soft);}
+
+  .evo-wrap{overflow-x:auto;}
+  .evo-svg{display:block;}
+  .evo-point{cursor:default;}
+
+  footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  /* ---------- Tooltip ---------- */
+  #tooltip{
+    position:fixed;z-index:100;pointer-events:none;
+    background:var(--ink);color:var(--bg);font-size:11.5px;line-height:1.45;
+    padding:9px 11px;border-radius:8px;max-width:240px;box-shadow:var(--shadow);
+    opacity:0;transform:translateY(4px);transition:opacity .1s, transform .1s;
+  }
+  #tooltip.show{opacity:1;transform:translateY(0);}
+  #tooltip b{display:block;margin-bottom:3px;font-weight:700;font-size:12px;}
+  #tooltip .tt-row{display:flex;justify-content:space-between;gap:12px;}
+  #tooltip .tt-row + .tt-row{margin-top:2px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#F1EEE5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/><path d="M9 12h.01M15 12h.01M12 9h.01"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>Obras del Litoral</h1>
+        <span>Agente de conciliación de facturas · Santa Fe, AR</span>
+      </div>
+    </div>
+    <div class="topbar-status">
+      <div class="agent-pill"><span class="dot"></span>Agente activo — monitoreando 7 proveedores</div>
+      <div class="topbar-clock">Última sincronización <span class="mono">02 Sep 2026, 09:14</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tablero">Tablero</button>
+    <button class="tab-btn" data-tab="stats">Resumen &amp; estadísticas</button>
+  </div>
+
+  <!-- ============ TAB: TABLERO ============ -->
+  <div class="tab-panel active" id="tab-tablero">
+
+    <div class="controls-row">
+      <h2>Vista general</h2>
+      <div class="period-select">
+        <label for="f-mes">Período</label>
+        <select id="f-mes"></select>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">Facturas capturadas</div>
+        <div class="kpi-value" id="kpi-count">28</div>
+        <div class="kpi-sub" id="kpi-count-sub">Todo el período · 3 obras activas</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Monto total procesado</div>
+        <div class="kpi-value mono" id="kpi-total">$0</div>
+        <div class="kpi-sub">ARS, IVA incluido</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Conciliadas sin intervención</div>
+        <div class="kpi-value success" id="kpi-auto">0%</div>
+        <div class="kpi-sub" id="kpi-auto-sub">0 de 0 facturas cerradas</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Con discrepancia detectada</div>
+        <div class="kpi-value warning" id="kpi-diff">0</div>
+        <div class="kpi-sub">Derivadas a revisión de compras</div>
+      </div>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-title">Captura autónoma</div>
+      <div class="pstage">
+        <div class="pstage-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="m3 6.5 9 6.5 9-6.5"/></svg></div>
+        <div class="pstage-label">Casilla de mail</div>
+        <div class="pstage-sub">facturas@obrasdellitoral.com.ar</div>
+      </div>
+      <div class="pconnector"></div>
+      <div class="pstage">
+        <div class="pstage-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg></div>
+        <div class="pstage-label">Portales proveedor</div>
+        <div class="pstage-sub">EPE · Litoral Gas · Corralón</div>
+      </div>
+      <div class="pconnector"></div>
+      <div class="pstage">
+        <div class="pstage-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg></div>
+        <div class="pstage-label">PDF adjuntos</div>
+        <div class="pstage-sub">remito y comprobante</div>
+      </div>
+      <div class="pconnector"></div>
+      <div class="pstage core">
+        <div class="pstage-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4.2"/></svg></div>
+        <div class="pstage-label">Agente IA</div>
+        <div class="pstage-sub">extracción + interpretación</div>
+      </div>
+      <div class="pconnector"></div>
+      <div class="pstage">
+        <div class="pstage-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div class="pstage-label">Orden de Compra</div>
+        <div class="pstage-sub">cotejo ítem por ítem</div>
+      </div>
+      <div class="pconnector"></div>
+      <div class="pstage">
+        <div class="pstage-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+        <div class="pstage-label">Tablero</div>
+        <div class="pstage-sub">clasificación final</div>
+      </div>
+    </div>
+
+    <div class="board">
+      <aside class="panel filters">
+        <div class="filter-group">
+          <h4>Obra</h4>
+          <select id="f-obra">
+            <option value="">Todas las obras</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <h4>Proveedor</h4>
+          <select id="f-prov">
+            <option value="">Todos los proveedores</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <h4>Estado</h4>
+          <div class="chip-list" id="f-estado">
+            <button class="chip active" data-state="">Todas</button>
+            <button class="chip state-conciliada" data-state="conciliada">Conciliadas</button>
+            <button class="chip state-diferencias" data-state="diferencias">Diferencias</button>
+            <button class="chip state-procesando" data-state="procesando">Procesando</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <h4>Buscar</h4>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="f-search" placeholder="N° factura u OC...">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="rules-toggle" id="rules-toggle">
+            <span>Reglas de tolerancia</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="rules-body" id="rules-body">
+            <div class="rule-row">
+              <label>Diferencia de precio admitida <b id="v-price">5%</b></label>
+              <input type="range" id="r-price" min="0" max="15" value="5" step="1">
+            </div>
+            <div class="rule-row">
+              <label>Diferencia de cantidad admitida <b id="v-qty">5%</b></label>
+              <input type="range" id="r-qty" min="0" max="20" value="5" step="1">
+            </div>
+            <div class="rule-row">
+              <label>Desvío de plazo de pago admitido <b id="v-plazo">5 días</b></label>
+              <input type="range" id="r-plazo" min="0" max="15" value="5" step="1">
+            </div>
+            <button class="rules-reset" id="rules-reset">Restaurar valores por defecto</button>
+            <div class="rules-note">El agente reclasifica todas las facturas del período seleccionado en vivo al mover estos umbrales — así el equipo de compras define qué nivel de desvío requiere ojo humano y cuál es tolerable.</div>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="list-head">
+          <div class="list-count"><b id="list-count">0</b> facturas encontradas</div>
+          <div class="list-hint">Hacé clic en un encabezado para ordenar · clic en una fila para ver el detalle</div>
+        </div>
+        <div class="table-wrap-main">
+          <table class="inv-table">
+            <thead>
+              <tr id="inv-thead"></tr>
+            </thead>
+            <tbody id="inv-tbody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <footer>
+      <span>Obras del Litoral S.A. — Demo funcional del agente de conciliación. Datos ilustrativos.</span>
+      <span>Motor de conciliación v0.9 · umbrales configurables por obra</span>
+    </footer>
+  </div>
+
+  <!-- ============ TAB: STATS ============ -->
+  <div class="tab-panel" id="tab-stats">
+    <div class="stats-intro">
+      <div><h2>Resumen &amp; estadísticas</h2><p id="stats-period-sub">Lectura ejecutiva del período seleccionado</p></div>
+    </div>
+    <div class="reorder-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+      Arrastrá el ícono de cada panel para ordenar las estadísticas a tu gusto — el orden queda guardado en este navegador.
+    </div>
+    <div id="stats-grid">
+      <div class="panel stat-panel" draggable="true" data-key="evolucion">
+        <div class="stat-panel-head">
+          <h4>Evolución mensual — monto facturado y % de conciliación automática (2025–2026)</h4>
+          <span class="drag-handle" title="Arrastrar para reordenar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+          </span>
+        </div>
+        <div class="evo-wrap" id="evo-chart"></div>
+      </div>
+      <div class="panel stat-panel" draggable="true" data-key="provs">
+        <div class="stat-panel-head">
+          <h4>Monto conciliado por proveedor</h4>
+          <span class="drag-handle" title="Arrastrar para reordenar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+          </span>
+        </div>
+        <div id="bar-provs"></div>
+      </div>
+      <div class="panel stat-panel" draggable="true" data-key="donut">
+        <div class="stat-panel-head">
+          <h4>Distribución por estado</h4>
+          <span class="drag-handle" title="Arrastrar para reordenar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+          </span>
+        </div>
+        <div class="donut-wrap">
+          <svg width="132" height="132" viewBox="0 0 132 132" id="donut" role="img" aria-label="Distribución de estados de facturas"></svg>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+      <div class="panel stat-panel" draggable="true" data-key="issues">
+        <div class="stat-panel-head">
+          <h4>Top discrepancias por monto en riesgo</h4>
+          <span class="drag-handle" title="Arrastrar para reordenar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+          </span>
+        </div>
+        <div class="top-issues" id="top-issues"></div>
+      </div>
+      <div class="panel stat-panel" draggable="true" data-key="channels">
+        <div class="stat-panel-head">
+          <h4>Origen de captura</h4>
+          <span class="drag-handle" title="Arrastrar para reordenar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+          </span>
+        </div>
+        <div id="bar-channels"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Detalle de factura"></div>
+<div id="tooltip"></div>
+
+<script>
+(function(){
+
+  var PROVIDERS = {
+    epe:        { name:'EPE',                 rubro:'Energía eléctrica',        color:'#0B3C74', accent:'#F2A900' },
+    litoralgas: { name:'Litoral Gas',          rubro:'Gas natural',              color:'#00558C', accent:'#F26522' },
+    lomanegra:  { name:'Loma Negra',           rubro:'Cemento y áridos',         color:'#161616', accent:'#D81E2C' },
+    acindar:    { name:'Acindar',              rubro:'Acero y hierro',           color:'#00306B', accent:'#7FA6D6' },
+    sika:       { name:'Sika',                 rubro:'Química para construcción',color:'#D0021B', accent:'#1A1A1A' },
+    ferrum:     { name:'Ferrum',               rubro:'Sanitarios y grifería',    color:'#00629B', accent:'#B7E4EE' },
+    corralon:   { name:'Corralón San Martín',  rubro:'Áridos y materiales',      color:'#8C5A2B', accent:'#E8C594' }
+  };
+
+  var OBRAS = {
+    torres:     'Torres del Puerto',
+    rivadavia:  'Complejo Rivadavia',
+    sauceviejo: 'Depósito Log. Sauce Viejo'
+  };
+
+  var CHANNELS = {
+    email:  { label:'Casilla de mail',    icon:'mail' },
+    portal: { label:'Portal proveedor',   icon:'globe' },
+    pdf:    { label:'PDF adjunto manual', icon:'file' }
+  };
+
+  var MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  function monthLabel(key){
+    var parts = key.split('-'); var y = parts[0], m = parseInt(parts[1],10);
+    return MONTH_NAMES[m-1] + ' ' + y;
+  }
+  function monthShort(key){
+    var parts = key.split('-'); var y = parts[0].slice(2), m = parseInt(parts[1],10);
+    return MONTH_NAMES[m-1].slice(0,3) + ' ’' + y;
+  }
+
+  function money(n){
+    return '$' + Math.round(n).toLocaleString('es-AR');
+  }
+  function moneyShort(n){
+    if(Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1).replace('.',',') + 'M';
+    if(Math.abs(n) >= 1000) return '$' + Math.round(n/1000) + 'k';
+    return money(n);
+  }
+
+  // ---------------- invoice dataset (Jun-Sep 2026, itemized) ----------------
+  var invoices = [
+    { id:'F-0417', prov:'epe', obra:'torres', canal:'portal', fecha:'2026-08-29', oc:'OC-2201', factura:'A-0004-00098417',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo trifásico', unidad:'mes', ocCant:1, facCant:1, ocPrecio:184000, facPrecio:184000 },
+        { nombre:'Consumo eléctrico', unidad:'kWh', ocCant:18400, facCant:18400, ocPrecio:97.4, facPrecio:103.8 }
+      ]
+    },
+    { id:'F-0418', prov:'litoralgas', obra:'rivadavia', canal:'portal', fecha:'2026-08-28', oc:'OC-2214', factura:'B-0002-00051209',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo de distribución', unidad:'mes', ocCant:1, facCant:1, ocPrecio:96500, facPrecio:96500 },
+        { nombre:'Consumo gas natural', unidad:'m³', ocCant:5220, facCant:5220, ocPrecio:214.6, facPrecio:214.6 }
+      ]
+    },
+    { id:'F-0419', prov:'lomanegra', obra:'torres', canal:'email', fecha:'2026-08-27', oc:'OC-2189', factura:'A-0011-00027744',
+      plazoOC:45, plazoFactura:45,
+      items:[
+        { nombre:'Cemento Portland CPC40 (bolsa 50kg)', unidad:'bolsa', ocCant:500, facCant:460, ocPrecio:14200, facPrecio:14200 },
+        { nombre:'Cal hidratada (bolsa 25kg)', unidad:'bolsa', ocCant:120, facCant:120, ocPrecio:6100, facPrecio:6100 }
+      ]
+    },
+    { id:'F-0420', prov:'acindar', obra:'rivadavia', canal:'email', fecha:'2026-08-26', oc:'OC-2176', factura:'A-0007-00019932',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Hierro construcción Ø8mm x 12m', unidad:'barra', ocCant:900, facCant:900, ocPrecio:8900, facPrecio:9612 },
+        { nombre:'Hierro construcción Ø10mm x 12m', unidad:'barra', ocCant:600, facCant:600, ocPrecio:12400, facPrecio:13390 }
+      ]
+    },
+    { id:'F-0421', prov:'sika', obra:'sauceviejo', canal:'pdf', fecha:'2026-08-25', oc:'OC-2233', factura:'C-0003-00008821',
+      plazoOC:21, plazoFactura:21,
+      items:[
+        { nombre:'Aditivo hidrófugo Sika-1', unidad:'balde 20L', ocCant:40, facCant:40, ocPrecio:38500, facPrecio:38500 },
+        { nombre:'Impermeabilizante SikaTop', unidad:'balde 20kg', ocCant:25, facCant:25, ocPrecio:61200, facPrecio:61200 }
+      ]
+    },
+    { id:'F-0422', prov:'ferrum', obra:'torres', canal:'email', fecha:'2026-08-24', oc:'OC-2198', factura:'A-0004-00061187',
+      plazoOC:30, plazoFactura:15,
+      items:[
+        { nombre:'Grifería monocomando cocina', unidad:'un', ocCant:24, facCant:24, ocPrecio:71400, facPrecio:71400 },
+        { nombre:'Inodoro corto mochila línea Deco', unidad:'un', ocCant:24, facCant:24, ocPrecio:98200, facPrecio:98200 }
+      ]
+    },
+    { id:'F-0423', prov:'corralon', obra:'rivadavia', canal:'portal', fecha:'2026-08-23', oc:'OC-2241', factura:'B-0001-00033456',
+      plazoOC:15, plazoFactura:15,
+      items:[
+        { nombre:'Ladrillo hueco 18x18x33', unidad:'un', ocCant:6000, facCant:6000, ocPrecio:590, facPrecio:590 },
+        { nombre:'Arena gruesa', unidad:'m³', ocCant:18, facCant:18, ocPrecio:47500, facPrecio:47500 }
+      ]
+    },
+    { id:'F-0424', prov:'epe', obra:'sauceviejo', canal:'portal', fecha:'2026-09-02', oc:'OC-2252', factura:null,
+      procesando:true, plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo trifásico', unidad:'mes', ocCant:1, facCant:1, ocPrecio:184000, facPrecio:184000 },
+        { nombre:'Consumo eléctrico', unidad:'kWh', ocCant:9800, facCant:9800, ocPrecio:97.4, facPrecio:97.4 }
+      ]
+    },
+    { id:'F-0425', prov:'litoralgas', obra:'torres', canal:'portal', fecha:'2026-09-02', oc:'OC-2255', factura:null,
+      procesando:true, plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo de distribución', unidad:'mes', ocCant:1, facCant:1, ocPrecio:96500, facPrecio:96500 },
+        { nombre:'Consumo gas natural', unidad:'m³', ocCant:3100, facCant:3100, ocPrecio:214.6, facPrecio:214.6 }
+      ]
+    },
+    { id:'F-0426', prov:'lomanegra', obra:'rivadavia', canal:'email', fecha:'2026-08-21', oc:'OC-2167', factura:'A-0011-00027601',
+      plazoOC:45, plazoFactura:45,
+      items:[
+        { nombre:'Cemento Portland CPC40 (bolsa 50kg)', unidad:'bolsa', ocCant:340, facCant:346, ocPrecio:14200, facPrecio:14200 },
+        { nombre:'Piedra partida 6-20', unidad:'m³', ocCant:22, facCant:22, ocPrecio:52300, facPrecio:52300 }
+      ]
+    },
+    { id:'F-0427', prov:'acindar', obra:'sauceviejo', canal:'email', fecha:'2026-08-20', oc:'OC-2144', factura:'A-0007-00019745',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Malla soldada Q188', unidad:'panel', ocCant:210, facCant:210, ocPrecio:31800, facPrecio:32280 },
+        { nombre:'Hierro construcción Ø6mm x 12m', unidad:'barra', ocCant:500, facCant:500, ocPrecio:5100, facPrecio:5100 }
+      ]
+    },
+    { id:'F-0428', prov:'sika', obra:'torres', canal:'pdf', fecha:'2026-08-19', oc:'OC-2151', factura:'C-0003-00008690',
+      plazoOC:21, plazoFactura:21,
+      items:[
+        { nombre:'Impermeabilizante SikaTop', unidad:'balde 20kg', ocCant:30, facCant:30, ocPrecio:61200, facPrecio:61200 },
+        { nombre:'Membrana asfáltica SikaShield (no cotizada en OC)', unidad:'rollo', ocCant:0, facCant:18, ocPrecio:0, facPrecio:54900 }
+      ]
+    },
+    { id:'F-0429', prov:'ferrum', obra:'rivadavia', canal:'email', fecha:'2026-08-18', oc:'OC-2139', factura:'A-0004-00060872',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Caño PVC 110mm x 4m', unidad:'un', ocCant:160, facCant:160, ocPrecio:14300, facPrecio:14300 },
+        { nombre:'Codo PVC 110mm 45°', unidad:'un', ocCant:90, facCant:90, ocPrecio:3800, facPrecio:3800 }
+      ]
+    },
+    { id:'F-0430', prov:'corralon', obra:'sauceviejo', canal:'portal', fecha:'2026-08-17', oc:'OC-2128', factura:'B-0001-00033201',
+      plazoOC:15, plazoFactura:15,
+      items:[
+        { nombre:'Arena gruesa', unidad:'m³', ocCant:10, facCant:12, ocPrecio:47500, facPrecio:47500 },
+        { nombre:'Hierro construcción Ø8mm x 12m', unidad:'barra', ocCant:150, facCant:150, ocPrecio:8900, facPrecio:8900 }
+      ]
+    },
+    { id:'F-0405', prov:'epe', obra:'rivadavia', canal:'portal', fecha:'2026-06-29', oc:'OC-2090', factura:'A-0004-00095210',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo trifásico', unidad:'mes', ocCant:1, facCant:1, ocPrecio:184000, facPrecio:184000 },
+        { nombre:'Consumo eléctrico', unidad:'kWh', ocCant:15200, facCant:15200, ocPrecio:91.0, facPrecio:97.4 }
+      ]
+    },
+    { id:'F-0406', prov:'litoralgas', obra:'sauceviejo', canal:'portal', fecha:'2026-06-28', oc:'OC-2101', factura:'B-0002-00049875',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo de distribución', unidad:'mes', ocCant:1, facCant:1, ocPrecio:96500, facPrecio:96500 },
+        { nombre:'Consumo gas natural', unidad:'m³', ocCant:2870, facCant:2870, ocPrecio:214.6, facPrecio:214.6 }
+      ]
+    },
+    { id:'F-0407', prov:'lomanegra', obra:'torres', canal:'email', fecha:'2026-06-27', oc:'OC-2077', factura:'A-0011-00027102',
+      plazoOC:45, plazoFactura:45,
+      items:[
+        { nombre:'Cemento Portland CPC40 (bolsa 50kg)', unidad:'bolsa', ocCant:420, facCant:420, ocPrecio:14200, facPrecio:14200 },
+        { nombre:'Cal hidratada (bolsa 25kg)', unidad:'bolsa', ocCant:90, facCant:90, ocPrecio:6100, facPrecio:6100 }
+      ]
+    },
+    { id:'F-0408', prov:'acindar', obra:'rivadavia', canal:'email', fecha:'2026-06-26', oc:'OC-2064', factura:'A-0007-00019380',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Hierro construcción Ø8mm x 12m', unidad:'barra', ocCant:700, facCant:700, ocPrecio:8500, facPrecio:9010 },
+        { nombre:'Hierro construcción Ø10mm x 12m', unidad:'barra', ocCant:400, facCant:400, ocPrecio:11800, facPrecio:11800 }
+      ]
+    },
+    { id:'F-0409', prov:'sika', obra:'sauceviejo', canal:'pdf', fecha:'2026-06-25', oc:'OC-2118', factura:'C-0003-00008340',
+      plazoOC:21, plazoFactura:21,
+      items:[
+        { nombre:'Aditivo hidrófugo Sika-1', unidad:'balde 20L', ocCant:30, facCant:30, ocPrecio:38500, facPrecio:38500 },
+        { nombre:'Impermeabilizante SikaTop', unidad:'balde 20kg', ocCant:18, facCant:18, ocPrecio:61200, facPrecio:61200 }
+      ]
+    },
+    { id:'F-0410', prov:'ferrum', obra:'torres', canal:'email', fecha:'2026-06-24', oc:'OC-2055', factura:'A-0004-00060210',
+      plazoOC:30, plazoFactura:10,
+      items:[
+        { nombre:'Grifería monocomando cocina', unidad:'un', ocCant:18, facCant:18, ocPrecio:71400, facPrecio:71400 },
+        { nombre:'Inodoro corto mochila línea Deco', unidad:'un', ocCant:18, facCant:18, ocPrecio:98200, facPrecio:98200 }
+      ]
+    },
+    { id:'F-0411', prov:'corralon', obra:'rivadavia', canal:'portal', fecha:'2026-06-23', oc:'OC-2130', factura:'B-0001-00032790',
+      plazoOC:15, plazoFactura:15,
+      items:[
+        { nombre:'Ladrillo hueco 18x18x33', unidad:'un', ocCant:4800, facCant:4800, ocPrecio:590, facPrecio:590 },
+        { nombre:'Arena gruesa', unidad:'m³', ocCant:14, facCant:14, ocPrecio:47500, facPrecio:47500 }
+      ]
+    },
+    { id:'F-0412', prov:'epe', obra:'torres', canal:'portal', fecha:'2026-07-30', oc:'OC-2150', factura:'A-0004-00096900',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo trifásico', unidad:'mes', ocCant:1, facCant:1, ocPrecio:184000, facPrecio:184000 },
+        { nombre:'Consumo eléctrico', unidad:'kWh', ocCant:17100, facCant:17100, ocPrecio:97.4, facPrecio:97.4 }
+      ]
+    },
+    { id:'F-0413', prov:'litoralgas', obra:'rivadavia', canal:'portal', fecha:'2026-07-29', oc:'OC-2161', factura:'B-0002-00050540',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Cargo fijo de distribución', unidad:'mes', ocCant:1, facCant:1, ocPrecio:96500, facPrecio:96500 },
+        { nombre:'Consumo gas natural', unidad:'m³', ocCant:4680, facCant:4680, ocPrecio:214.6, facPrecio:214.6 }
+      ]
+    },
+    { id:'F-0414', prov:'lomanegra', obra:'sauceviejo', canal:'email', fecha:'2026-07-28', oc:'OC-2140', factura:'A-0011-00027410',
+      plazoOC:45, plazoFactura:45,
+      items:[
+        { nombre:'Cemento Portland CPC40 (bolsa 50kg)', unidad:'bolsa', ocCant:380, facCant:346, ocPrecio:14200, facPrecio:14200 },
+        { nombre:'Piedra partida 6-20', unidad:'m³', ocCant:16, facCant:16, ocPrecio:52300, facPrecio:52300 }
+      ]
+    },
+    { id:'F-0415', prov:'acindar', obra:'torres', canal:'email', fecha:'2026-07-27', oc:'OC-2128b', factura:'A-0007-00019610',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Malla soldada Q188', unidad:'panel', ocCant:160, facCant:160, ocPrecio:31800, facPrecio:31800 },
+        { nombre:'Hierro construcción Ø6mm x 12m', unidad:'barra', ocCant:420, facCant:420, ocPrecio:5100, facPrecio:5100 }
+      ]
+    },
+    { id:'F-0416', prov:'sika', obra:'rivadavia', canal:'pdf', fecha:'2026-07-26', oc:'OC-2172', factura:'C-0003-00008560',
+      plazoOC:21, plazoFactura:21,
+      items:[
+        { nombre:'Impermeabilizante SikaTop', unidad:'balde 20kg', ocCant:22, facCant:22, ocPrecio:61200, facPrecio:61200 },
+        { nombre:'Sellador poliuretánico SikaFlex (no cotizado en OC)', unidad:'un', ocCant:0, facCant:12, ocPrecio:0, facPrecio:32400 }
+      ]
+    },
+    { id:'F-0431', prov:'ferrum', obra:'sauceviejo', canal:'email', fecha:'2026-07-25', oc:'OC-2115', factura:'A-0004-00060540',
+      plazoOC:30, plazoFactura:30,
+      items:[
+        { nombre:'Caño PVC 110mm x 4m', unidad:'un', ocCant:130, facCant:130, ocPrecio:14300, facPrecio:14300 },
+        { nombre:'Codo PVC 110mm 45°', unidad:'un', ocCant:70, facCant:70, ocPrecio:3800, facPrecio:3800 }
+      ]
+    },
+    { id:'F-0432', prov:'corralon', obra:'torres', canal:'portal', fecha:'2026-07-24', oc:'OC-2183', factura:'B-0001-00033010',
+      plazoOC:15, plazoFactura:15,
+      items:[
+        { nombre:'Arena gruesa', unidad:'m³', ocCant:16, facCant:16, ocPrecio:43500, facPrecio:47500 },
+        { nombre:'Ladrillo hueco 18x18x33', unidad:'un', ocCant:5200, facCant:5200, ocPrecio:590, facPrecio:590 }
+      ]
+    }
+  ];
+
+  // ---------------- filler generation: ensure every month has service invoices (EPE / Litoral Gas)
+  // and a minimum of ~21 received invoices, without duplicating the curated invoices above ----------------
+  var GEN_MONTHS = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08'];
+  var OBRA_LIST = ['torres','rivadavia','sauceviejo'];
+  var OBRA_SCALE = { torres:1.15, rivadavia:1.0, sauceviejo:0.72 };
+  var CANAL_BY_PROV = { epe:'portal', litoralgas:'portal', corralon:'portal', lomanegra:'email', acindar:'email', ferrum:'email', sika:'pdf' };
+  var DOC_PREFIX = { epe:'A-0004-', litoralgas:'B-0002-', lomanegra:'A-0011-', acindar:'A-0007-', sika:'C-0003-', ferrum:'A-0004-', corralon:'B-0001-' };
+  var PLAZO_BY_PROV = { epe:30, litoralgas:30, lomanegra:45, acindar:30, sika:21, ferrum:30, corralon:15 };
+
+  var PROV_TEMPLATES = {
+    epe: [
+      { nombre:'Cargo fijo trifásico', unidad:'mes', precio:184000, cantBase:1, fixedQty:true },
+      { nombre:'Consumo eléctrico', unidad:'kWh', precio:97.4, cantBase:12000 }
+    ],
+    litoralgas: [
+      { nombre:'Cargo fijo de distribución', unidad:'mes', precio:96500, cantBase:1, fixedQty:true },
+      { nombre:'Consumo gas natural', unidad:'m³', precio:214.6, cantBase:3200, seasonal:true }
+    ],
+    lomanegra: [
+      { nombre:'Cemento Portland CPC40 (bolsa 50kg)', unidad:'bolsa', precio:14200, cantBase:440 },
+      { nombre:'Cal hidratada (bolsa 25kg)', unidad:'bolsa', precio:6100, cantBase:100 }
+    ],
+    acindar: [
+      { nombre:'Hierro construcción Ø8mm x 12m', unidad:'barra', precio:8900, cantBase:750 },
+      { nombre:'Hierro construcción Ø10mm x 12m', unidad:'barra', precio:12400, cantBase:500 }
+    ],
+    sika: [
+      { nombre:'Aditivo hidrófugo Sika-1', unidad:'balde 20L', precio:38500, cantBase:32 },
+      { nombre:'Impermeabilizante SikaTop', unidad:'balde 20kg', precio:61200, cantBase:20 }
+    ],
+    ferrum: [
+      { nombre:'Grifería monocomando cocina', unidad:'un', precio:71400, cantBase:20 },
+      { nombre:'Inodoro corto mochila línea Deco', unidad:'un', precio:98200, cantBase:20 }
+    ],
+    corralon: [
+      { nombre:'Ladrillo hueco 18x18x33', unidad:'un', precio:590, cantBase:5200 },
+      { nombre:'Arena gruesa', unidad:'m³', precio:47500, cantBase:15 }
+    ]
+  };
+  var EXTRA_ITEM = {
+    epe:{ nombre:'Recargo por mora (no presupuestado)', unidad:'un', precio:22000 },
+    litoralgas:{ nombre:'Recargo por mora (no presupuestado)', unidad:'un', precio:18000 },
+    lomanegra:{ nombre:'Flete especial (no cotizado en OC)', unidad:'viaje', precio:41000 },
+    acindar:{ nombre:'Corte y doblado especial (no cotizado en OC)', unidad:'servicio', precio:36000 },
+    sika:{ nombre:'Sellador poliuretánico SikaFlex (no cotizado en OC)', unidad:'un', precio:32400 },
+    ferrum:{ nombre:'Kit de instalación (no cotizado en OC)', unidad:'un', precio:19500 },
+    corralon:{ nombre:'Flete de urgencia (no cotizado en OC)', unidad:'viaje', precio:27500 }
+  };
+
+  function gasSeasonal(month){
+    var m = parseInt(month.split('-')[1],10);
+    if(m===6||m===7||m===8) return 1.55;
+    if(m===12||m===1||m===2) return 0.55;
+    return 1;
+  }
+  function round2(n){ return Math.round(n*100)/100; }
+
+  var rngState = 987654321;
+  function rng(){ rngState = (rngState*1103515245 + 12345) & 0x7fffffff; return rngState / 0x7fffffff; }
+
+  (function generateFillerInvoices(){
+    var existing = {};
+    invoices.forEach(function(inv){
+      existing[inv.fecha.slice(0,7)+'|'+inv.prov+'|'+inv.obra] = true;
+    });
+    var seq = 5000;
+    var generated = [];
+    GEN_MONTHS.forEach(function(month, monthIndex){
+      var inflation = Math.pow(1.025, monthIndex);
+      Object.keys(PROV_TEMPLATES).forEach(function(prov){
+        OBRA_LIST.forEach(function(obra){
+          var mkey = month+'|'+prov+'|'+obra;
+          if(existing[mkey]) return;
+          seq++;
+          var scale = OBRA_SCALE[obra];
+          var seasonal = PROV_TEMPLATES[prov].some(function(t){ return t.seasonal; }) ? gasSeasonal(month) : 1;
+          var items = PROV_TEMPLATES[prov].map(function(it){
+            var ocCant = it.fixedQty ? it.cantBase : Math.round(it.cantBase*scale*seasonal*(0.9+rng()*0.2));
+            var ocPrecio = round2(it.precio*inflation*(0.98+rng()*0.04));
+            return { nombre:it.nombre, unidad:it.unidad, ocCant:ocCant, facCant:ocCant, ocPrecio:ocPrecio, facPrecio:ocPrecio };
+          });
+          var plazoOC = PLAZO_BY_PROV[prov];
+          var plazoFactura = plazoOC;
+          if(rng() > 0.55){
+            var dim = rng();
+            var pick = items[Math.floor(rng()*items.length)];
+            if(dim < 0.38){
+              var pct = (0.06 + rng()*0.09) * (rng() < 0.5 ? -1 : 1);
+              pick.facPrecio = round2(pick.ocPrecio * (1+pct));
+            } else if(dim < 0.72){
+              var pct2 = (0.06 + rng()*0.14) * (rng() < 0.5 ? -1 : 1);
+              pick.facCant = Math.max(0, Math.round(pick.ocCant * (1+pct2)));
+            } else if(dim < 0.88){
+              var extra = EXTRA_ITEM[prov];
+              items.push({ nombre:extra.nombre, unidad:extra.unidad, ocCant:0, facCant:Math.round(2+rng()*8), ocPrecio:0, facPrecio:round2(extra.precio*inflation) });
+            } else {
+              plazoFactura = Math.max(5, plazoOC - Math.round(10 + rng()*15));
+            }
+          }
+          var day = Math.min(27, 2 + Math.floor(rng()*26));
+          var dayStr = (day < 10 ? '0' : '') + day;
+          var docNum = (10000 + seq).toString();
+          generated.push({
+            id: 'G-' + seq,
+            prov: prov, obra: obra, canal: CANAL_BY_PROV[prov],
+            fecha: month + '-' + dayStr,
+            oc: 'OC-' + (3000 + seq),
+            factura: DOC_PREFIX[prov] + docNum,
+            plazoOC: plazoOC, plazoFactura: plazoFactura,
+            items: items
+          });
+        });
+      });
+    });
+    invoices = invoices.concat(generated);
+  })();
+
+  // ---------------- monthly evolution aggregate (illustrative trend, independent of itemized invoices) ----------------
+  var EVOLUTION = [
+    { mes:'2025-01', total:96000000,  count:9,  autoRate:18 },
+    { mes:'2025-02', total:88000000,  count:8,  autoRate:20 },
+    { mes:'2025-03', total:121000000, count:11, autoRate:22 },
+    { mes:'2025-04', total:134000000, count:12, autoRate:25 },
+    { mes:'2025-05', total:142000000, count:13, autoRate:27 },
+    { mes:'2025-06', total:151000000, count:13, autoRate:30 },
+    { mes:'2025-07', total:158000000, count:14, autoRate:33 },
+    { mes:'2025-08', total:163000000, count:14, autoRate:35 },
+    { mes:'2025-09', total:170000000, count:15, autoRate:37 },
+    { mes:'2025-10', total:179000000, count:15, autoRate:39 },
+    { mes:'2025-11', total:188000000, count:16, autoRate:41 },
+    { mes:'2025-12', total:165000000, count:13, autoRate:40 },
+    { mes:'2026-01', total:142000000, count:11, autoRate:40 },
+    { mes:'2026-02', total:149000000, count:11, autoRate:42 },
+    { mes:'2026-03', total:201000000, count:16, autoRate:44 },
+    { mes:'2026-04', total:218000000, count:17, autoRate:46 },
+    { mes:'2026-05', total:226000000, count:17, autoRate:47 },
+    { mes:'2026-06', total:233000000, count:18, autoRate:48 },
+    { mes:'2026-07', total:241000000, count:18, autoRate:49 },
+    { mes:'2026-08', total:258000000, count:20, autoRate:50 },
+    { mes:'2026-09', total:61000000,  count:4,  autoRate:50 }
+  ];
+
+  // ---------------- computation ----------------
+  function computeInvoice(inv, tol){
+    var maxPrecioDiff = 0, maxCantDiff = 0, itemsMismatch = false, ocMonto = 0, facMonto = 0;
+    var flaggedItems = [];
+    inv.items.forEach(function(it){
+      var ocTotal = it.ocCant * it.ocPrecio;
+      var facTotal = it.facCant * it.facPrecio;
+      ocMonto += ocTotal; facMonto += facTotal;
+      var mismatch = (it.ocCant === 0 && it.facCant > 0) || (it.facCant === 0 && it.ocCant > 0);
+      var cantDiff = it.ocCant ? Math.abs((it.facCant - it.ocCant) / it.ocCant * 100) : (mismatch ? 100 : 0);
+      var precioDiff = it.ocPrecio ? Math.abs((it.facPrecio - it.ocPrecio) / it.ocPrecio * 100) : 0;
+      it._cantDiff = cantDiff; it._precioDiff = precioDiff; it._mismatch = mismatch;
+      it._ocTotal = ocTotal; it._facTotal = facTotal;
+      if(mismatch) itemsMismatch = true;
+      if(!mismatch){
+        maxCantDiff = Math.max(maxCantDiff, cantDiff);
+        maxPrecioDiff = Math.max(maxPrecioDiff, precioDiff);
+      }
+      if(mismatch || cantDiff > tol.qty || precioDiff > tol.price) flaggedItems.push(it);
+    });
+    var plazoDiff = (inv.plazoFactura != null && inv.plazoOC != null) ? (inv.plazoFactura - inv.plazoOC) : 0;
+    var plazoFlag = Math.abs(plazoDiff) > tol.plazo;
+
+    var status;
+    if(inv.procesando){
+      status = 'procesando';
+    } else if(itemsMismatch || maxCantDiff > tol.qty || maxPrecioDiff > tol.price || plazoFlag){
+      status = 'diferencias';
+    } else {
+      status = 'conciliada';
+    }
+
+    var tags = [];
+    if(!inv.procesando){
+      if(itemsMismatch) tags.push('Ítem no presupuestado');
+      if(maxCantDiff > tol.qty) tags.push('Cantidad');
+      if(maxPrecioDiff > tol.price) tags.push('Precio');
+      if(plazoFlag) tags.push('Plazo de pago');
+    }
+
+    return {
+      status: status, ocMonto: ocMonto, facMonto: facMonto,
+      maxCantDiff: maxCantDiff, maxPrecioDiff: maxPrecioDiff,
+      plazoDiff: plazoDiff, plazoFlag: plazoFlag, itemsMismatch: itemsMismatch,
+      tags: tags, flaggedItems: flaggedItems
+    };
+  }
+
+  function getTol(){
+    return {
+      price: parseFloat(document.getElementById('r-price').value),
+      qty: parseFloat(document.getElementById('r-qty').value),
+      plazo: parseFloat(document.getElementById('r-plazo').value)
+    };
+  }
+
+  // ---------------- icons ----------------
+  var ICONS = {
+    mail:'<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="m3 6.5 9 6.5 9-6.5"/></svg>',
+    globe:'<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg>',
+    file:'<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>',
+    clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+  };
+
+  var STATUS_META = {
+    conciliada:{ label:'Conciliada', icon:'check' },
+    diferencias:{ label:'Con diferencias', icon:'alert' },
+    procesando:{ label:'Procesando', icon:'clock' }
+  };
+
+  function logoBadge(provKey, size){
+    var p = PROVIDERS[provKey];
+    var s = size || 52;
+    var fs = Math.round(s*0.24);
+    var html = '<div class="logo-badge" style="background:'+p.color+';width:'+s+'px;height:'+s+'px;">';
+    if(provKey==='epe'){
+      html += '<div style="color:#fff;font-weight:900;font-size:'+fs+'px;letter-spacing:0.02em;text-align:center;line-height:1;">EPE<div style="height:3px;width:60%;background:'+p.accent+';margin:3px auto 0;"></div></div>';
+    } else if(provKey==='litoralgas'){
+      html += '<div style="display:flex;flex-direction:column;align-items:center;color:#fff;"><div style="width:0;height:0;border-left:'+(fs*0.35)+'px solid transparent;border-right:'+(fs*0.35)+'px solid transparent;border-bottom:'+(fs*0.55)+'px solid '+p.accent+';margin-bottom:2px;"></div><div style="font-weight:800;font-size:'+(fs*0.62)+'px;letter-spacing:0.01em;">LITORAL</div></div>';
+    } else if(provKey==='lomanegra'){
+      html += '<div style="text-align:center;color:#fff;"><div style="font-weight:900;font-size:'+fs+'px;line-height:0.85;">LN</div><div style="width:5px;height:5px;border-radius:50%;background:'+p.accent+';margin:4px auto 0;"></div></div>';
+    } else if(provKey==='acindar'){
+      html += '<div style="color:#fff;font-weight:800;font-style:italic;font-size:'+(fs*0.85)+'px;letter-spacing:0.01em;">Acin<span style="color:'+p.accent+'">dar</span></div>';
+    } else if(provKey==='sika'){
+      html += '<div style="color:#fff;font-weight:900;font-size:'+fs+'px;letter-spacing:-0.02em;transform:scaleX(0.92);">SIKA</div>';
+    } else if(provKey==='ferrum'){
+      html += '<div style="color:#fff;font-weight:700;font-size:'+(fs*0.62)+'px;letter-spacing:0.03em;border:2px solid '+p.accent+';border-radius:50%;width:'+(s*0.66)+'px;height:'+(s*0.66)+'px;display:flex;align-items:center;justify-content:center;text-align:center;">FRM</div>';
+    } else if(provKey==='corralon'){
+      html += '<div style="color:#fff;font-weight:800;font-size:'+(fs*0.58)+'px;text-align:center;line-height:1.05;">CORRALÓN<br><span style="color:'+p.accent+';font-size:'+(fs*0.5)+'px;">SAN MARTÍN</span></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  // ---------------- tooltip ----------------
+  var ttEl;
+  function ttShow(html, e){
+    ttEl.innerHTML = html; ttEl.classList.add('show');
+    ttMove(e);
+  }
+  function ttMove(e){
+    var x = e.clientX + 16, y = e.clientY + 16;
+    ttEl.style.left = '-1000px'; ttEl.style.top = '-1000px';
+    var tw = ttEl.offsetWidth, th = ttEl.offsetHeight;
+    if(x + tw > window.innerWidth - 10) x = e.clientX - tw - 16;
+    if(y + th > window.innerHeight - 10) y = e.clientY - th - 16;
+    ttEl.style.left = x + 'px'; ttEl.style.top = y + 'px';
+  }
+  function ttHide(){ ttEl.classList.remove('show'); }
+  function tip(el, htmlFn){
+    el.addEventListener('mouseenter', function(e){ ttShow(htmlFn(), e); });
+    el.addEventListener('mousemove', function(e){ ttMove(e); });
+    el.addEventListener('mouseleave', ttHide);
+    el.addEventListener('focus', function(e){
+      var r = el.getBoundingClientRect();
+      ttShow(htmlFn(), { clientX:r.left, clientY:r.bottom });
+    });
+    el.addEventListener('blur', ttHide);
+  }
+
+  // ---------------- state ----------------
+  var state = { obra:'', prov:'', estado:'', search:'', mes:'2026-08', sortKey:'fecha', sortDir:'desc' };
+
+  var COLUMNS = [
+    { key:'prov',   label:'Proveedor',      num:false },
+    { key:'obra',   label:'Obra',           num:false },
+    { key:'fecha',  label:'Fecha',          num:false },
+    { key:'doc',    label:'Factura / OC',   num:false },
+    { key:'canal',  label:'Canal',          num:false },
+    { key:'monto',  label:'Monto',          num:true  },
+    { key:'estado', label:'Estado',         num:false }
+  ];
+
+  function populateSelects(){
+    var obraSel = document.getElementById('f-obra');
+    Object.keys(OBRAS).forEach(function(k){
+      var o = document.createElement('option'); o.value = k; o.textContent = OBRAS[k];
+      obraSel.appendChild(o);
+    });
+    var provSel = document.getElementById('f-prov');
+    Object.keys(PROVIDERS).forEach(function(k){
+      var o = document.createElement('option'); o.value = k; o.textContent = PROVIDERS[k].name;
+      provSel.appendChild(o);
+    });
+    var mesSel = document.getElementById('f-mes');
+    var optTodos = document.createElement('option'); optTodos.value = ''; optTodos.textContent = 'Todos los meses (2025–2026)';
+    mesSel.appendChild(optTodos);
+    EVOLUTION.slice().reverse().forEach(function(m){
+      var o = document.createElement('option'); o.value = m.mes; o.textContent = monthLabel(m.mes);
+      mesSel.appendChild(o);
+    });
+    mesSel.value = state.mes;
+
+    var thead = document.getElementById('inv-thead');
+    thead.innerHTML = COLUMNS.map(function(c){
+      return '<th class="'+(c.num?'num':'')+'" data-key="'+c.key+'">'+c.label+'<span class="sort-arrow">▲</span></th>';
+    }).join('');
+  }
+
+  function statusPillHtml(status){
+    var m = STATUS_META[status];
+    return '<span class="status-pill '+status+'">'+ICONS[m.icon]+m.label+'</span>';
+  }
+
+  function diagnosisText(inv, calc){
+    if(calc.status === 'procesando'){
+      return { icon:'clock', text:'El agente está extrayendo los datos de esta factura y todavía no completó el cotejo contra la orden de compra '+inv.oc+'.' };
+    }
+    if(calc.status === 'conciliada'){
+      return { icon:'check', text:'Ítems, cantidades, precios y plazo de pago coinciden con la orden de compra '+inv.oc+' dentro de las tolerancias configuradas. Lista para aprobar el pago.' };
+    }
+    var parts = [];
+    calc.flaggedItems.forEach(function(it){
+      if(it._mismatch){
+        parts.push('«'+it.nombre+'» se facturó sin figurar en la OC ('+money(it._facTotal)+' no presupuestados)');
+      } else if(it._cantDiff > 0 && it._precioDiff > 0){
+        parts.push('«'+it.nombre+'»: cantidad '+(it.facCant>it.ocCant?'+':'')+(it.facCant-it.ocCant)+' '+it.unidad+' y precio '+(it.facPrecio>it.ocPrecio?'+':'')+it._precioDiff.toFixed(1)+'% vs. OC');
+      } else if(it._cantDiff > 0){
+        parts.push('«'+it.nombre+'»: cantidad facturada '+it.facCant+' '+it.unidad+' vs. '+it.ocCant+' en la OC ('+(it.facCant>it.ocCant?'+':'')+it._cantDiff.toFixed(1)+'%)');
+      } else if(it._precioDiff > 0){
+        parts.push('«'+it.nombre+'»: precio facturado '+money(it.facPrecio)+' vs. '+money(it.ocPrecio)+' acordado ('+(it.facPrecio>it.ocPrecio?'+':'')+it._precioDiff.toFixed(1)+'%)');
+      }
+    });
+    if(calc.plazoFlag){
+      parts.push('el plazo de pago exigido ('+inv.plazoFactura+' días) difiere del acordado en la OC ('+inv.plazoOC+' días)');
+    }
+    return { icon:'alert', text:'Diferencia detectada respecto de la OC '+inv.oc+': '+parts.join('; ')+'.' };
+  }
+
+  function render(){
+    var tol = getTol();
+    document.getElementById('v-price').textContent = tol.price+'%';
+    document.getElementById('v-qty').textContent = tol.qty+'%';
+    document.getElementById('v-plazo').textContent = tol.plazo+(tol.plazo===1?' día':' días');
+
+    var computedAll = invoices.map(function(inv){ return { inv:inv, calc: computeInvoice(inv, tol) }; });
+
+    // period scope (drives KPIs + stats)
+    var period = computedAll.filter(function(c){ return !state.mes || c.inv.fecha.slice(0,7) === state.mes; });
+    var processed = period.filter(function(c){ return c.calc.status !== 'procesando'; });
+    var conciliadas = processed.filter(function(c){ return c.calc.status === 'conciliada'; });
+    var diferencias = processed.filter(function(c){ return c.calc.status === 'diferencias'; });
+    var totalMonto = period.reduce(function(s,c){ return s + (c.calc.status==='procesando' ? c.calc.ocMonto : c.calc.facMonto); }, 0);
+
+    document.getElementById('kpi-count').textContent = period.length;
+    document.getElementById('kpi-count-sub').textContent = (state.mes ? monthLabel(state.mes) : 'Todo el período') + ' · 3 obras activas';
+    document.getElementById('kpi-total').textContent = moneyShort(totalMonto);
+    document.getElementById('kpi-auto').textContent = processed.length ? Math.round(conciliadas.length/processed.length*100)+'%' : '—';
+    document.getElementById('kpi-auto-sub').textContent = conciliadas.length+' de '+processed.length+' facturas cerradas';
+    document.getElementById('kpi-diff').textContent = diferencias.length;
+
+    document.getElementById('stats-period-sub').textContent = 'Lectura ejecutiva de ' + (state.mes ? monthLabel(state.mes) : 'todo el período 2025–2026');
+
+    // filtered table rows (period + sidebar filters)
+    var filtered = period.filter(function(c){
+      if(state.obra && c.inv.obra !== state.obra) return false;
+      if(state.prov && c.inv.prov !== state.prov) return false;
+      if(state.estado && c.calc.status !== state.estado) return false;
+      if(state.search){
+        var s = state.search.toLowerCase();
+        var hay = (c.inv.id+' '+c.inv.oc+' '+(c.inv.factura||'')).toLowerCase();
+        if(hay.indexOf(s) === -1) return false;
+      }
+      return true;
+    });
+
+    filtered.sort(function(a,b){
+      var dir = state.sortDir === 'asc' ? 1 : -1;
+      var av, bv;
+      switch(state.sortKey){
+        case 'prov': av = PROVIDERS[a.inv.prov].name; bv = PROVIDERS[b.inv.prov].name; break;
+        case 'obra': av = OBRAS[a.inv.obra]; bv = OBRAS[b.inv.obra]; break;
+        case 'doc': av = a.inv.factura || a.inv.oc; bv = b.inv.factura || b.inv.oc; break;
+        case 'canal': av = CHANNELS[a.inv.canal].label; bv = CHANNELS[b.inv.canal].label; break;
+        case 'monto': av = a.calc.status==='procesando'?a.calc.ocMonto:a.calc.facMonto; bv = b.calc.status==='procesando'?b.calc.ocMonto:b.calc.facMonto; return (av-bv)*dir;
+        case 'estado': av = a.calc.status; bv = b.calc.status; break;
+        default: av = a.inv.fecha; bv = b.inv.fecha;
+      }
+      if(av < bv) return -1*dir;
+      if(av > bv) return 1*dir;
+      return 0;
+    });
+
+    document.querySelectorAll('#inv-thead th').forEach(function(th){
+      th.classList.toggle('sorted', th.getAttribute('data-key') === state.sortKey);
+      th.querySelector('.sort-arrow').textContent = state.sortDir === 'asc' ? '▲' : '▼';
+    });
+
+    document.getElementById('list-count').textContent = filtered.length;
+
+    var tbody = document.getElementById('inv-tbody');
+    if(filtered.length === 0){
+      tbody.innerHTML = '<tr><td colspan="'+COLUMNS.length+'"><div class="empty-state">No hay facturas que coincidan con estos filtros.</div></td></tr>';
+    } else {
+      tbody.innerHTML = filtered.map(function(c){
+        var inv = c.inv, calc = c.calc, p = PROVIDERS[inv.prov], chan = CHANNELS[inv.canal];
+        var amount = calc.status === 'procesando' ? calc.ocMonto : calc.facMonto;
+        var fechaFmt = new Date(inv.fecha+'T12:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'});
+        return '' +
+        '<tr tabindex="0" data-id="'+inv.id+'">' +
+          '<td><div class="table-prov-cell">'+logoBadge(inv.prov,34)+'<div class="names"><span class="n">'+p.name+'</span><span class="r">'+p.rubro+'</span></div></div></td>' +
+          '<td>'+OBRAS[inv.obra]+'</td>' +
+          '<td class="mono">'+fechaFmt+'</td>' +
+          '<td><div class="table-oc-cell"><span class="fac">'+(inv.factura||'—')+'</span><span>'+inv.oc+'</span></div></td>' +
+          '<td>'+chan.label+'</td>' +
+          '<td class="num">'+(calc.status==='procesando'?'~':'')+money(amount)+'</td>' +
+          '<td><div class="table-status-cell">'+statusPillHtml(calc.status)+
+            (calc.tags.length ? '<div class="table-diff-tags">'+calc.tags.map(function(t){return '<span class="diff-tag">'+t+'</span>';}).join('')+'</div>' : '')+
+          '</div></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    renderStats(period);
+    window._computed = computedAll;
+  }
+
+  // ---------------- drawer ----------------
+  function openDrawer(id){
+    var c = window._computed.filter(function(c){ return c.inv.id === id; })[0];
+    if(!c) return;
+    var inv = c.inv, calc = c.calc, p = PROVIDERS[inv.prov];
+    var diag = diagnosisText(inv, calc);
+    var chan = CHANNELS[inv.canal];
+
+    var itemsRows = inv.items.map(function(it){
+      var flagged = calc.flaggedItems.indexOf(it) !== -1;
+      var qtyDeltaHtml = it._mismatch ? '<span class="delta bad">sin OC</span>' : (it._cantDiff > 0 ? '<span class="delta '+(it._cantDiff > getTol().qty ? 'bad':'ok')+'">'+(it.facCant>it.ocCant?'+':'-')+it._cantDiff.toFixed(1)+'%</span>' : '');
+      var priceDeltaHtml = it._precioDiff > 0 ? '<span class="delta '+(it._precioDiff > getTol().price ? 'bad':'ok')+'">'+(it.facPrecio>it.ocPrecio?'+':'-')+it._precioDiff.toFixed(1)+'%</span>' : '';
+      return '<tr class="'+(flagged?'row-flag':'')+'">' +
+        '<td class="item-name">'+it.nombre+'</td>' +
+        '<td class="num">'+(it.ocCant||'—')+' '+it.unidad+'</td>' +
+        '<td class="num">'+(it.facCant||'—')+' '+it.unidad+qtyDeltaHtml+'</td>' +
+        '<td class="num">'+(it.ocPrecio?money(it.ocPrecio):'—')+'</td>' +
+        '<td class="num">'+(it.facPrecio?money(it.facPrecio):'—')+priceDeltaHtml+'</td>' +
+      '</tr>';
+    }).join('');
+
+    var html = '' +
+    '<div class="drawer-head">' +
+      logoBadge(inv.prov, 46) +
+      '<div class="drawer-head-text"><h3>'+p.name+'</h3><div class="sub">'+OBRAS[inv.obra]+' · '+(inv.factura||'Factura en proceso de captura')+'</div></div>' +
+      '<button class="drawer-close" id="drawer-close" aria-label="Cerrar">'+ICONS.x+'</button>' +
+    '</div>' +
+    '<div class="drawer-body">' +
+      '<div class="diagnosis '+calc.status+'">'+ICONS[diag.icon]+'<span><b>'+STATUS_META[calc.status].label+'.</b> '+diag.text+'</span></div>' +
+      '<div>' +
+        '<div class="channel-trace">'+ICONS[chan.icon]+'Capturada automáticamente vía '+chan.label+' el '+new Date(inv.fecha+'T12:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})+'</div>' +
+      '</div>' +
+      '<div class="meta-grid">' +
+        '<div><span class="label">Orden de compra</span><span class="val mono">'+inv.oc+'</span></div>' +
+        '<div><span class="label">N° de factura</span><span class="val mono">'+(inv.factura||'pendiente')+'</span></div>' +
+        '<div><span class="label">Monto OC</span><span class="val mono">'+money(calc.ocMonto)+'</span></div>' +
+        '<div><span class="label">Monto factura</span><span class="val mono">'+(calc.status==='procesando'?'—':money(calc.facMonto))+'</span></div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="sect-title">Ítems: orden de compra vs. factura</div>' +
+        '<div class="table-wrap"><table class="items-table"><thead><tr><th>Ítem</th><th class="num">Cant. OC</th><th class="num">Cant. Fact.</th><th class="num">Precio OC</th><th class="num">Precio Fact.</th></tr></thead><tbody>'+itemsRows+'</tbody></table></div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="sect-title">Condiciones de pago</div>' +
+        '<div class="terms-compare">' +
+          '<div class="term-card"><div class="k">Plazo acordado (OC)</div><div class="v">'+inv.plazoOC+' días</div></div>' +
+          '<div class="term-arrow">'+ICONS.arrow+'</div>' +
+          '<div class="term-card '+(calc.plazoFlag?'flag':'')+'"><div class="k">Plazo exigido (factura)</div><div class="v">'+inv.plazoFactura+' días</div></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.getElementById('drawer').innerHTML = html;
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('scrim').classList.add('open');
+    document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  }
+  function closeDrawer(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('scrim').classList.remove('open');
+  }
+
+  // ---------------- stats ----------------
+  function renderStats(period){
+    // bars by provider
+    var byProv = {};
+    period.forEach(function(c){
+      if(c.calc.status === 'procesando') return;
+      var k = c.inv.prov;
+      byProv[k] = byProv[k] || { total:0, conciliado:0 };
+      byProv[k].total += c.calc.facMonto;
+      if(c.calc.status === 'conciliada') byProv[k].conciliado += c.calc.facMonto;
+    });
+    var maxTotal = Math.max.apply(null, Object.keys(byProv).map(function(k){return byProv[k].total;}).concat([1]));
+    var barProvsEl = document.getElementById('bar-provs');
+    barProvsEl.innerHTML = Object.keys(byProv).sort(function(a,b){return byProv[b].total-byProv[a].total;}).map(function(k,i){
+      var d = byProv[k]; var pct = d.total/maxTotal*100; var okPct = d.total? d.conciliado/d.total*100 : 0;
+      return '<div class="bar-row" data-prov="'+k+'">' +
+        '<span>'+PROVIDERS[k].name+'</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:linear-gradient(90deg, var(--success) '+okPct+'%, var(--critical) '+okPct+'%);"></div></div>' +
+        '<span class="num">'+moneyShort(d.total)+'</span>' +
+      '</div>';
+    }).join('') || '<div class="empty-state">Sin datos para este período</div>';
+    barProvsEl.querySelectorAll('.bar-row').forEach(function(row){
+      var k = row.getAttribute('data-prov'); var d = byProv[k];
+      tip(row, function(){
+        var okPct = d.total ? Math.round(d.conciliado/d.total*100) : 0;
+        return '<b>'+PROVIDERS[k].name+'</b><div class="tt-row"><span>Facturado</span><span>'+money(d.total)+'</span></div><div class="tt-row"><span>Conciliado</span><span>'+money(d.conciliado)+' ('+okPct+'%)</span></div>';
+      });
+    });
+
+    // donut by status
+    var counts = { conciliada:0, diferencias:0, procesando:0 };
+    period.forEach(function(c){ counts[c.calc.status]++; });
+    var total = period.length || 1;
+    var colors = { conciliada:'var(--success)', diferencias:'var(--critical)', procesando:'var(--blueprint)' };
+    var cx=66, cy=66, r=50, sw=18;
+    var circumference = 2*Math.PI*r;
+    var offset = 0;
+    var segs = '';
+    ['conciliada','diferencias','procesando'].forEach(function(k){
+      var frac = counts[k]/total;
+      var len = frac*circumference;
+      segs += '<circle class="donut-seg" data-k="'+k+'" cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+colors[k]+'" stroke-width="'+sw+'" stroke-dasharray="'+len+' '+(circumference-len)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="butt"/>';
+      offset += len;
+    });
+    var centerText = '<text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" font-family="Big Shoulders Display" font-weight="800" font-size="26" fill="var(--ink)">'+period.length+'</text><text x="'+cx+'" y="'+(cy+15)+'" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="var(--ink-faint)">facturas</text>';
+    var donutEl = document.getElementById('donut');
+    donutEl.innerHTML = segs + centerText;
+    donutEl.querySelectorAll('.donut-seg').forEach(function(seg){
+      var k = seg.getAttribute('data-k');
+      tip(seg, function(){
+        var pct = Math.round(counts[k]/total*100);
+        return '<b>'+STATUS_META[k].label+'</b><div class="tt-row"><span>Facturas</span><span>'+counts[k]+' ('+pct+'%)</span></div>';
+      });
+    });
+    document.getElementById('donut-legend').innerHTML = ['conciliada','diferencias','procesando'].map(function(k){
+      return '<div><span class="sw" style="background:'+colors[k]+';"></span>'+STATUS_META[k].label+'<span class="n">'+counts[k]+'</span></div>';
+    }).join('');
+
+    // top issues
+    var withDiff = period.filter(function(c){ return c.calc.status === 'diferencias'; });
+    withDiff.sort(function(a,b){ return b.calc.facMonto - a.calc.facMonto; });
+    var issuesEl = document.getElementById('top-issues');
+    issuesEl.innerHTML = withDiff.slice(0,6).map(function(c,i){
+      return '<div class="issue-row" data-id="'+c.inv.id+'"><span class="badge">'+(i+1)+'</span><span class="txt">'+PROVIDERS[c.inv.prov].name+' · '+OBRAS[c.inv.obra]+' · '+c.calc.tags.join(', ')+'</span><span class="amt">'+money(c.calc.facMonto)+'</span></div>';
+    }).join('') || '<div class="empty-state">Sin discrepancias con los umbrales actuales.</div>';
+    issuesEl.querySelectorAll('.issue-row').forEach(function(row){
+      var id = row.getAttribute('data-id');
+      var c = withDiff.filter(function(c){return c.inv.id===id;})[0];
+      tip(row, function(){
+        return '<b>'+c.inv.factura+'</b><div class="tt-row"><span>OC</span><span>'+c.inv.oc+'</span></div><div class="tt-row"><span>Motivo</span><span>'+c.calc.tags.join(', ')+'</span></div>';
+      });
+    });
+
+    // channels
+    var byChan = {};
+    period.forEach(function(c){ byChan[c.inv.canal] = (byChan[c.inv.canal]||0) + 1; });
+    var maxChan = Math.max.apply(null, Object.keys(byChan).map(function(k){return byChan[k];}).concat([1]));
+    var chanEl = document.getElementById('bar-channels');
+    chanEl.innerHTML = Object.keys(CHANNELS).map(function(k){
+      var n = byChan[k] || 0; var pct = n/maxChan*100;
+      return '<div class="bar-row" data-chan="'+k+'">' +
+        '<span>'+CHANNELS[k].label+'</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:var(--blueprint);"></div></div>' +
+        '<span class="num">'+n+'</span>' +
+      '</div>';
+    }).join('');
+    chanEl.querySelectorAll('.bar-row').forEach(function(row){
+      var k = row.getAttribute('data-chan'); var n = byChan[k] || 0;
+      tip(row, function(){
+        var pct = period.length ? Math.round(n/period.length*100) : 0;
+        return '<b>'+CHANNELS[k].label+'</b><div class="tt-row"><span>Facturas</span><span>'+n+' ('+pct+'%)</span></div>';
+      });
+    });
+
+    renderEvolution();
+  }
+
+  function renderEvolution(){
+    var el = document.getElementById('evo-chart');
+    if(el.dataset.built) return; // static trend, build once
+    el.dataset.built = '1';
+
+    var w = 900, h = 240, padL = 44, padR = 16, padT = 16, padB = 30;
+    var innerW = w - padL - padR, innerH = h - padT - padB;
+    var maxTotal = Math.max.apply(null, EVOLUTION.map(function(m){return m.total;}));
+    var n = EVOLUTION.length;
+    function xAt(i){ return padL + (innerW * i / (n-1)); }
+    function yAt(v){ return padT + innerH - (v/maxTotal*innerH); }
+
+    var linePts = EVOLUTION.map(function(m,i){ return xAt(i)+','+yAt(m.total); }).join(' ');
+    var areaPts = 'M'+xAt(0)+','+(padT+innerH)+' L'+linePts.replace(/ /g,' L')+' L'+xAt(n-1)+','+(padT+innerH)+' Z';
+
+    var gridLines = '';
+    for(var g=0; g<=4; g++){
+      var gy = padT + innerH*g/4;
+      var val = maxTotal*(1-g/4);
+      gridLines += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(w-padR)+'" y2="'+gy+'" stroke="var(--line-soft)" stroke-width="1"/>';
+      gridLines += '<text x="'+(padL-8)+'" y="'+(gy+3)+'" text-anchor="end" font-size="9.5" font-family="IBM Plex Mono" fill="var(--ink-faint)">'+moneyShort(val)+'</text>';
+    }
+
+    var xLabels = '';
+    EVOLUTION.forEach(function(m,i){
+      if(i % 3 !== 0 && i !== n-1) return;
+      xLabels += '<text x="'+xAt(i)+'" y="'+(h-8)+'" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono" fill="var(--ink-faint)">'+monthShort(m.mes)+'</text>';
+    });
+
+    var points = EVOLUTION.map(function(m,i){
+      return '<circle class="evo-point" data-i="'+i+'" cx="'+xAt(i)+'" cy="'+yAt(m.total)+'" r="9" fill="transparent"/>' +
+             '<circle cx="'+xAt(i)+'" cy="'+yAt(m.total)+'" r="3" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>';
+    }).join('');
+
+    var svg = '<svg class="evo-svg" viewBox="0 0 '+w+' '+h+'" width="100%" height="'+h+'" preserveAspectRatio="xMinYMid meet">' +
+      '<defs><linearGradient id="evoGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="var(--accent)" stop-opacity="0.28"/>' +
+        '<stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>' +
+      '</linearGradient></defs>' +
+      gridLines +
+      '<path d="'+areaPts+'" fill="url(#evoGrad)"/>' +
+      '<polyline points="'+linePts+'" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      xLabels +
+      points +
+    '</svg>';
+    el.innerHTML = svg;
+
+    el.querySelectorAll('.evo-point').forEach(function(pt){
+      var m = EVOLUTION[parseInt(pt.getAttribute('data-i'),10)];
+      tip(pt, function(){
+        return '<b>'+monthLabel(m.mes)+'</b>' +
+          '<div class="tt-row"><span>Facturado</span><span>'+money(m.total)+'</span></div>' +
+          '<div class="tt-row"><span>Facturas</span><span>'+m.count+'</span></div>' +
+          '<div class="tt-row"><span>Conciliación auto.</span><span>'+m.autoRate+'%</span></div>';
+      });
+    });
+  }
+
+  // ---------------- drag reorder (stats tab) ----------------
+  var STATS_ORDER_KEY = 'obrasdellitoral-stats-order';
+  function applyStatsOrder(){
+    var container = document.getElementById('stats-grid');
+    var saved;
+    try { saved = JSON.parse(localStorage.getItem(STATS_ORDER_KEY) || 'null'); } catch(e){ saved = null; }
+    if(!saved || !saved.length) return;
+    saved.forEach(function(key){
+      var el = container.querySelector('[data-key="'+key+'"]');
+      if(el) container.appendChild(el);
+    });
+  }
+  function saveStatsOrder(){
+    var container = document.getElementById('stats-grid');
+    var order = [].slice.call(container.children).map(function(el){ return el.getAttribute('data-key'); });
+    try { localStorage.setItem(STATS_ORDER_KEY, JSON.stringify(order)); } catch(e){}
+  }
+  function getDragAfterElement(container, y){
+    var els = [].slice.call(container.querySelectorAll('.stat-panel:not(.dragging)'));
+    return els.reduce(function(closest, child){
+      var box = child.getBoundingClientRect();
+      var offset = y - box.top - box.height/2;
+      if(offset < 0 && offset > closest.offset){
+        return { offset: offset, element: child };
+      }
+      return closest;
+    }, { offset: -Infinity }).element;
+  }
+  function wireDragReorder(){
+    var container = document.getElementById('stats-grid');
+    container.querySelectorAll('.stat-panel').forEach(function(panel){
+      panel.addEventListener('dragstart', function(){
+        panel.classList.add('dragging');
+      });
+      panel.addEventListener('dragend', function(){
+        panel.classList.remove('dragging');
+        saveStatsOrder();
+      });
+    });
+    container.addEventListener('dragover', function(e){
+      e.preventDefault();
+      var dragging = container.querySelector('.dragging');
+      if(!dragging) return;
+      var after = getDragAfterElement(container, e.clientY);
+      if(after == null) container.appendChild(dragging);
+      else container.insertBefore(dragging, after);
+    });
+  }
+
+  // ---------------- tabs ----------------
+  function wireTabs(){
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab-'+btn.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+  }
+
+  // ---------------- wiring ----------------
+  ttEl = document.getElementById('tooltip');
+  populateSelects();
+  wireTabs();
+  applyStatsOrder();
+  wireDragReorder();
+
+  document.getElementById('f-obra').addEventListener('change', function(e){ state.obra = e.target.value; render(); });
+  document.getElementById('f-prov').addEventListener('change', function(e){ state.prov = e.target.value; render(); });
+  document.getElementById('f-mes').addEventListener('change', function(e){ state.mes = e.target.value; render(); });
+  document.getElementById('f-search').addEventListener('input', function(e){ state.search = e.target.value; render(); });
+  document.getElementById('f-estado').addEventListener('click', function(e){
+    var btn = e.target.closest('.chip'); if(!btn) return;
+    document.querySelectorAll('#f-estado .chip').forEach(function(c){ c.classList.remove('active'); });
+    btn.classList.add('active');
+    state.estado = btn.getAttribute('data-state');
+    render();
+  });
+
+  document.getElementById('inv-thead').addEventListener('click', function(e){
+    var th = e.target.closest('th'); if(!th) return;
+    var key = th.getAttribute('data-key');
+    if(state.sortKey === key){
+      state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      state.sortKey = key;
+      state.sortDir = key === 'fecha' || key === 'monto' ? 'desc' : 'asc';
+    }
+    render();
+  });
+
+  ['r-price','r-qty','r-plazo'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', render);
+  });
+  document.getElementById('rules-reset').addEventListener('click', function(){
+    document.getElementById('r-price').value = 5;
+    document.getElementById('r-qty').value = 5;
+    document.getElementById('r-plazo').value = 5;
+    render();
+  });
+  document.getElementById('rules-toggle').addEventListener('click', function(){
+    this.classList.toggle('open');
+    document.getElementById('rules-body').classList.toggle('open');
+  });
+
+  document.getElementById('inv-tbody').addEventListener('click', function(e){
+    var row = e.target.closest('tr[data-id]'); if(!row) return;
+    openDrawer(row.getAttribute('data-id'));
+  });
+  document.getElementById('inv-tbody').addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    var row = e.target.closest('tr[data-id]'); if(!row) return;
+    openDrawer(row.getAttribute('data-id'));
+  });
+  document.getElementById('scrim').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDrawer(); });
+
+  render();
+})();
+</script>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Portal de Documentación · Chofer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF;
+    --bg:#F3F7FA;
+    --bg-deep:#EAF1F6;
+    --ink:#132433;
+    --ink-soft:#5B6B78;
+    --ink-faint:#8C99A5;
+    --blue-deep:#0A3D62;
+    --blue:#1C77C3;
+    --blue-mid:#2E8BD9;
+    --blue-soft:#E7F2FB;
+    --green:#1E9E6D;
+    --green-soft:#E4F7EF;
+    --yellow:#F4B400;
+    --yellow-soft:#FDF3D9;
+    --red:#C0392B;
+    --red-soft:#FBE7E4;
+    --border:#DCE6ED;
+    --shadow: 0 10px 30px rgba(10,61,98,0.10);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,sans-serif;
+    background:
+      radial-gradient(1000px 500px at 15% -10%, #E9F2FB 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, #E7F7EE 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:32px 16px 60px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+
+  /* Phone frame */
+  .phone{
+    width:390px;
+    height:820px;
+    background:var(--ink);
+    border-radius:46px;
+    padding:12px;
+    box-shadow: var(--shadow), 0 0 0 1px rgba(10,61,98,0.06);
+    position:relative;
+    flex-shrink:0;
+  }
+  .notch{
+    position:absolute;
+    top:12px;left:50%;transform:translateX(-50%);
+    width:120px;height:22px;
+    background:var(--ink);
+    border-radius:0 0 16px 16px;
+    z-index:30;
+  }
+  .screen{
+    background:var(--bg);
+    width:100%;height:100%;
+    border-radius:34px;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* HEADER */
+  .app-header{
+    background: linear-gradient(135deg, var(--blue-deep), #0d4a76 55%, var(--blue));
+    color:#fff;
+    padding:20px 18px 16px;
+    flex-shrink:0;
+    position:relative;
+  }
+  .header-top{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px;
+  }
+  .brandmark{
+    display:flex;align-items:center;gap:9px;
+  }
+  .brandmark .logo{
+    width:30px;height:30px;border-radius:9px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk';font-weight:700;font-size:13px;
+    border:1px solid rgba(255,255,255,0.35);
+  }
+  .brandmark .name{font-size:13px;font-weight:600;}
+  .brandmark .sub{font-size:10px;color:rgba(255,255,255,0.65);}
+
+  .user-row{display:flex;align-items:center;gap:11px;}
+  .avatar{
+    width:42px;height:42px;border-radius:12px;
+    background:rgba(255,255,255,0.16);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-family:'Space Grotesk';font-size:15px;
+    border:1px solid rgba(255,255,255,0.3);
+  }
+  .user-meta .greet{font-size:11.5px;color:rgba(255,255,255,0.7);}
+  .user-meta .uname{font-size:14px;font-weight:600;}
+
+  /* MAIN SCROLL */
+  .app-main{flex:1;overflow-y:auto;padding:16px 16px 90px;}
+  .app-main::-webkit-scrollbar{display:none;}
+
+  .section-title{font-size:13px;font-weight:700;color:var(--ink);margin:18px 0 10px;}
+
+  /* DOC CARD */
+  .doc-card{
+    background:var(--white);border:1px solid var(--border);
+    border-radius:var(--radius-md);padding:14px;margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .doc-card.verde{border-left:4px solid var(--green);}
+  .doc-card.amarillo{border-left:4px solid var(--yellow);}
+  .doc-card.rojo{border-left:4px solid var(--red);}
+
+  .doc-info{flex:1;}
+  .doc-name{font-weight:600;font-size:12.5px;margin-bottom:4px;}
+  .doc-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft);}
+  .status-dot{width:7px;height:7px;border-radius:50%;}
+  .status-dot.verde{background:var(--green);}
+  .status-dot.amarillo{background:var(--yellow);}
+  .status-dot.rojo{background:var(--red);}
+
+  .doc-action{display:flex;align-items:center;gap:6px;}
+  .btn-upload{background:var(--blue-soft);color:var(--blue-deep);border:none;border-radius:8px;
+    padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;}
+  .btn-upload:active{transform:scale(0.95);}
+
+  .validity-row{font-size:10px;color:var(--ink-faint);margin-top:2px;}
+
+  /* BOTTOM SHEET */
+  .bottom-sheet-overlay{display:none;position:fixed;inset:0;background:rgba(19,36,51,0.3);z-index:100;}
+  .bottom-sheet-overlay.show{display:block;}
+  .bottom-sheet{
+    position:fixed;bottom:0;left:0;right:0;background:var(--white);
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    padding:20px;max-height:80vh;overflow-y:auto;
+    transform:translateY(100%);transition:transform .3s;z-index:101;
+    box-shadow:0 -10px 40px rgba(10,61,98,0.15);
+  }
+  .bottom-sheet.show{transform:translateY(0);}
+  .sheet-handle{
+    width:40px;height:4px;background:var(--border);border-radius:2px;
+    margin:0 auto 16px;
+  }
+  .sheet-title{font-size:16px;font-weight:700;margin-bottom:16px;}
+  .sheet-content{display:flex;flex-direction:column;gap:12px;}
+
+  .upload-area{
+    border:2px dashed var(--border);border-radius:var(--radius-md);
+    padding:20px;text-align:center;cursor:pointer;transition:.2s;
+    background:var(--bg);
+  }
+  .upload-area:hover{background:var(--blue-soft);border-color:var(--blue);}
+  .upload-area.active{background:var(--blue-soft);border-color:var(--blue);}
+  .upload-area .ic{font-size:32px;margin-bottom:8px;}
+  .upload-area .txt{font-size:12px;font-weight:600;color:var(--ink);}
+  .upload-area .sub{font-size:11px;color:var(--ink-soft);margin-top:4px;}
+
+  #fileInput{display:none;}
+
+  .file-preview{
+    background:var(--bg);padding:12px;border-radius:var(--radius-sm);
+    margin-top:12px;display:flex;align-items:center;gap:10px;
+    font-size:12px;
+  }
+  .file-preview .ic{font-size:20px;}
+  .file-preview .info{flex:1;}
+  .file-preview .rm{color:var(--red);cursor:pointer;font-weight:700;}
+
+  .ocr-result{
+    background:var(--green-soft);border:1px solid var(--green);
+    border-radius:var(--radius-sm);padding:12px;margin-top:12px;
+  }
+  .ocr-result .t{font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px;}
+  .ocr-result .data{font-size:11px;color:var(--ink);}
+  .ocr-result .data-row{margin-bottom:6px;}
+
+  .btn-confirm{
+    width:100%;background:var(--green);color:var(--white);border:none;
+    border-radius:var(--radius-md);padding:12px;font-size:12px;font-weight:700;
+    cursor:pointer;transition:.2s;margin-top:12px;
+  }
+  .btn-confirm:active{transform:scale(0.98);}
+
+  .btn-cancel{
+    width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--border);
+    border-radius:var(--radius-md);padding:12px;font-size:12px;font-weight:700;
+    cursor:pointer;transition:.2s;
+  }
+  .btn-cancel:active{transform:scale(0.98);}
+
+  .toast{position:fixed;bottom:100px;left:16px;right:16px;background:var(--ink);
+    color:var(--white);padding:12px 16px;border-radius:10px;font-size:12px;
+    opacity:0;transition:.3s;z-index:200;}
+  .toast.show{opacity:1;}
+
+  .summary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+  .sum-card{background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;}
+  .sum-card .num{font-size:20px;font-weight:700;font-family:'Space Grotesk';color:var(--blue-deep);}
+  .sum-card .lbl{font-size:10px;color:var(--ink-soft);margin-top:2px;}
+  .sum-card.verde .num{color:var(--green);}
+  .sum-card.rojo .num{color:var(--red);}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <!-- HEADER -->
+    <div class="app-header">
+      <div class="header-top">
+        <div class="brandmark">
+          <div class="logo">📋</div>
+          <div>
+            <div class="name">TransportHub</div>
+            <div class="sub">Documentos</div>
+          </div>
+        </div>
+      </div>
+      <div class="user-row">
+        <div class="avatar">JP</div>
+        <div class="user-meta">
+          <div class="greet">Hola,</div>
+          <div class="uname">Juan Pérez</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="app-main">
+      <!-- RESUMEN -->
+      <div class="summary-row">
+        <div class="sum-card verde">
+          <div class="num" id="stat-verde">0</div>
+          <div class="lbl">Vigentes</div>
+        </div>
+        <div class="sum-card rojo">
+          <div class="num" id="stat-rojo">0</div>
+          <div class="lbl">Vencidos</div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTACIÓN CHOFER -->
+      <div class="section-title">📜 Documentación Personal</div>
+      <div id="docs-personal"></div>
+
+      <!-- DOCUMENTACIÓN VEHÍCULO -->
+      <div class="section-title">🚚 Documentación del Vehículo</div>
+      <div id="docs-vehiculo"></div>
+
+      <!-- DOCUMENTACIÓN IZAJE (si aplica) -->
+      <div class="section-title">🏗️ Equipos de Izaje (si aplica)</div>
+      <div id="docs-izaje"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div class="bottom-sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheetTitle">Cargar Documento</div>
+  
+  <div class="sheet-content">
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+      <div class="ic">📱</div>
+      <div class="txt">Seleccionar archivo</div>
+      <div class="sub">Foto, PDF o documento digital</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileSelect(event)">
+
+    <div id="filePreview"></div>
+    <div id="ocrResult"></div>
+
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button class="btn-cancel" onclick="closeSheet()">Cancelar</button>
+      <button class="btn-confirm" id="btnConfirm" onclick="confirmUpload()" style="display:none;">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastText"></span>
+</div>
+
+<script>
+  // DATOS DOCUMENTACIÓN
+  const documentos = {
+    personal: [
+      { id: 'dni', nombre: 'DNI/Cédula', estado: 'verde', vencimiento: '15/12/2028', descripcion: 'Válido' },
+      { id: 'licencia', nombre: 'Licencia de Conducir', estado: 'verde', vencimiento: '22/06/2027', descripcion: 'Cat. D - Válida' },
+      { id: 'linti', nombre: 'LINTI - Cargas', estado: 'amarillo', vencimiento: '10/09/2026', descripcion: 'Vence en 20 días' },
+      { id: 'psicofisico', nombre: 'Aptitud Psicofísica', estado: 'verde', vencimiento: '14/11/2027', descripcion: 'Válida' },
+      { id: 'sindicato', nombre: 'Certificado Sindicato', estado: 'amarillo', vencimiento: '05/10/2026', descripcion: 'Vence en 45 días' },
+    ],
+    vehiculo: [
+      { id: 'vtv', nombre: 'VTV/RTO', estado: 'verde', vencimiento: '30/11/2026', descripcion: 'Vigente' },
+      { id: 'rc', nombre: 'Responsabilidad Civil', estado: 'verde', vencimiento: '20/12/2026', descripcion: 'Póliza vigente' },
+      { id: 'cedulaverde', nombre: 'Cédula Verde', estado: 'verde', vencimiento: 'Permanente', descripcion: 'Registro actualizado' },
+      { id: 'poliza', nombre: 'Póliza Integral', estado: 'amarillo', vencimiento: '15/09/2026', descripcion: 'Vence en 25 días' },
+    ],
+    izaje: [
+      { id: 'grua', nombre: 'Certificación de Grúa', estado: 'verde', vencimiento: '18/03/2027', descripcion: 'Habilitada' },
+      { id: 'mantenimiento', nombre: 'Mantenimiento Preventivo', estado: 'verde', vencimiento: '30/08/2026', descripcion: 'Al día' },
+    ]
+  };
+
+  let currentDocId = null;
+  let currentSection = null;
+  let uploadedFile = null;
+
+  function renderDocuments() {
+    renderSection('personal', 'docs-personal');
+    renderSection('vehiculo', 'docs-vehiculo');
+    renderSection('izaje', 'docs-izaje');
+    updateStats();
+  }
+
+  function renderSection(section, elementId) {
+    const docs = documentos[section];
+    const html = docs.map(doc => `
+      <div class="doc-card ${doc.estado}">
+        <div class="doc-info">
+          <div class="doc-name">${doc.nombre}</div>
+          <div class="doc-status">
+            <span class="status-dot ${doc.estado}"></span>
+            <span>${doc.descripcion}</span>
+          </div>
+          <div class="validity-row">Vto: ${doc.vencimiento}</div>
+        </div>
+        <div class="doc-action">
+          <button class="btn-upload" onclick="openUploadSheet('${section}', '${doc.id}', '${doc.nombre}')">
+            ${doc.estado === 'rojo' ? '❌' : doc.estado === 'amarillo' ? '⚠️' : '✓'} Cargar
+          </button>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById(elementId).innerHTML = html || '<p style="font-size:11px;color:var(--ink-soft);">Sin documentos requeridos</p>';
+  }
+
+  function updateStats() {
+    const allDocs = [...documentos.personal, ...documentos.vehiculo, ...documentos.izaje];
+    const verde = allDocs.filter(d => d.estado === 'verde').length;
+    const rojo = allDocs.filter(d => d.estado === 'rojo').length;
+    document.getElementById('stat-verde').textContent = verde;
+    document.getElementById('stat-rojo').textContent = rojo;
+  }
+
+  function openUploadSheet(section, docId, docName) {
+    currentSection = section;
+    currentDocId = docId;
+    document.getElementById('sheetTitle').textContent = `Cargar ${docName}`;
+    document.getElementById('filePreview').innerHTML = '';
+    document.getElementById('ocrResult').innerHTML = '';
+    document.getElementById('btnConfirm').style.display = 'none';
+    uploadedFile = null;
+    document.getElementById('sheet').classList.add('show');
+    document.getElementById('sheetOverlay').classList.add('show');
+  }
+
+  function closeSheet() {
+    document.getElementById('sheet').classList.remove('show');
+    document.getElementById('sheetOverlay').classList.remove('show');
+    setTimeout(() => {
+      document.getElementById('fileInput').value = '';
+      uploadedFile = null;
+    }, 300);
+  }
+
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    uploadedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const previewHtml = `
+        <div class="file-preview">
+          <div class="ic">${file.type.startsWith('image') ? '📷' : '📄'}</div>
+          <div class="info">
+            <div style="font-weight:600;">${file.name}</div>
+            <div style="color:var(--ink-soft);">${(file.size / 1024).toFixed(0)} KB</div>
+          </div>
+          <div class="rm" onclick="clearFile()">✕</div>
+        </div>
+      `;
+      document.getElementById('filePreview').innerHTML = previewHtml;
+
+      // Simular OCR después de 1.5s
+      simulateOCR(file.name);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function simulateOCR(fileName) {
+    const doc = documentos[currentSection].find(d => d.id === currentDocId);
+    
+    // Mock OCR results
+    const ocrData = {
+      dni: { numero: '12.345.678', apellido: 'Pérez', nombre: 'Juan', vencimiento: '15/12/2028' },
+      licencia: { numero: 'ABC-123456', categoria: 'D', vencimiento: '22/06/2027', estado: 'Vigente' },
+      linti: { numero: '456789', tipo: 'Cargas Generales', vencimiento: '10/09/2026' },
+      vtv: { numero: 'VTV2026-45', vencimiento: '30/11/2026', estado: 'Vigente' },
+      rc: { numero: 'RC-987654', vencimiento: '20/12/2026', cobertura: 'Terceros' },
+      cedulaverde: { patente: 'AA-100-AB', titular: 'Pérez, Juan', dominio: 'Vigente' },
+      poliza: { numero: 'POL-123456', vencimiento: '15/09/2026', cobertura: 'Integral' },
+      grua: { numero: 'GRUA-2024', vencimiento: '18/03/2027', estado: 'Habilitada' },
+      mantenimiento: { ultima: '30/08/2026', proximo: '30/11/2026', estado: 'Al día' }
+    };
+
+    const data = ocrData[currentDocId] || { resultado: 'Documento procesado' };
+
+    setTimeout(() => {
+      const ocrHtml = `
+        <div class="ocr-result">
+          <div class="t">✓ Documento procesado por IA</div>
+          <div class="data">
+            ${Object.entries(data).map(([k, v]) => 
+              `<div class="data-row"><strong>${k}:</strong> ${v}</div>`
+            ).join('')}
+          </div>
+        </div>
+      `;
+      document.getElementById('ocrResult').innerHTML = ocrHtml;
+      document.getElementById('btnConfirm').style.display = 'block';
+    }, 1500);
+  }
+
+  function clearFile() {
+    uploadedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('filePreview').innerHTML = '';
+    document.getElementById('ocrResult').innerHTML = '';
+    document.getElementById('btnConfirm').style.display = 'none';
+  }
+
+  function confirmUpload() {
+    if (!uploadedFile) return;
+
+    // Actualizar estado del documento
+    const doc = documentos[currentSection].find(d => d.id === currentDocId);
+    if (doc) {
+      doc.estado = 'verde';
+      // Simular nueva fecha de vencimiento (1 año)
+      const nextYear = new Date();
+      nextYear.setFullYear(nextYear.getFullYear() + 1);
+      doc.vencimiento = nextYear.toLocaleDateString('es-AR');
+    }
+
+    showToast(`✓ ${doc.nombre} cargado y validado`);
+    renderDocuments();
+    closeSheet();
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  // INIT
+  renderDocuments();
+</script>
+
+</body>
+</html>

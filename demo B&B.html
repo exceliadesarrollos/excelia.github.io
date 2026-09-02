@@ -1,0 +1,799 @@
+<title>Brit & Bru Wines</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f6f2f1;
+    --surface:#ffffff;
+    --surface-2:#efe7e5;
+    --ink:#241a1a;
+    --ink-dim:#6e5f5c;
+    --line:#e0d5d2;
+    --accent:#7a2635;
+    --accent-ink:#511623;
+    --accent-soft:#f4e3e2;
+    --navy:#a3792f;
+    --navy-soft:#f7ecd9;
+    --warn:#b8862c;
+    --warn-soft:#faf1de;
+    --crit:#b6423a;
+    --crit-soft:#fbe9e6;
+    --bubble-client:#ffffff;
+    --bubble-bot:#f0dade;
+    --chat-bg:#efe6e2;
+    --shadow: 0 1px 2px rgba(30,20,18,.06), 0 8px 24px -12px rgba(30,20,18,.18);
+    --callout-bg:#fffaf0;
+    --callout-border:#d9a441;
+    --callout-ink:#5c4319;
+    --callout-label:#b8862c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171212;
+      --surface:#211a19;
+      --surface-2:#282020;
+      --ink:#f0e8e6;
+      --ink-dim:#b0a09b;
+      --line:#3a2f2d;
+      --accent:#d98a94;
+      --accent-ink:#f3d3d8;
+      --accent-soft:#3a1f24;
+      --navy:#d4af62;
+      --navy-soft:#332714;
+      --warn:#e0b25e;
+      --warn-soft:#3a2f18;
+      --crit:#e2857c;
+      --crit-soft:#3a2320;
+      --bubble-client:#2a2120;
+      --bubble-bot:#4a2c33;
+      --chat-bg:#1c1615;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+      --callout-bg:#2b2410;
+      --callout-border:#e0b25e;
+      --callout-ink:#f3e2b8;
+      --callout-label:#e0b25e;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12160f;
+    --surface:#1a2019;
+    --surface-2:#212721;
+    --ink:#eaeee7;
+    --ink-dim:#9fb0a6;
+    --line:#323a32;
+    --accent:#d98a94;
+    --accent-ink:#f3d3d8;
+    --accent-soft:#3a1f24;
+    --navy:#d4af62;
+    --navy-soft:#332714;
+    --warn:#e0b25e;
+    --warn-soft:#3a2f18;
+    --crit:#e2857c;
+    --crit-soft:#3a2320;
+    --bubble-client:#232a22;
+    --bubble-bot:#204736;
+    --chat-bg:#161c15;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    --callout-bg:#2b2410;
+    --callout-border:#e0b25e;
+    --callout-ink:#f3e2b8;
+    --callout-label:#e0b25e;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent);color:#fff;}
+
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 28px;border-bottom:1px solid var(--line);
+    background:var(--surface);position:sticky;top:0;z-index:40;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{
+    width:30px;height:30px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),var(--navy));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:-.02em;
+    flex:none;
+  }
+  .brand .name{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.01em;}
+  .brand .tag{font-size:11.5px;color:var(--ink-dim);letter-spacing:.02em;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+
+  .controls{display:flex;align-items:center;gap:8px;}
+  .btn{
+    font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink);
+    padding:8px 14px;border-radius:8px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:border-color .15s, background .15s, transform .05s;
+  }
+  .btn:hover{border-color:var(--accent);}
+  .btn:active{transform:translateY(1px);}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn.primary:hover{filter:brightness(1.06);}
+  .btn.ghost{background:transparent;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn svg{width:15px;height:15px;flex:none;}
+
+  .stage{
+    max-width:1360px;margin:0 auto;
+    padding:22px 28px 60px;
+    display:grid;grid-template-columns:380px 1fr;gap:22px;
+    align-items:start;
+  }
+  @media (max-width:980px){ .stage{grid-template-columns:1fr;} }
+
+  h2.section-title{
+    font-family:'Sora',sans-serif;font-size:13px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.06em;color:var(--ink-dim);
+    margin:0 0 10px;
+  }
+
+  /* ---------- PHONE / CHAT PANEL ---------- */
+  .phone-wrap{position:sticky;top:76px;}
+  .phone{
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .phone-head{
+    background:var(--accent);color:#fff;padding:14px 16px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .phone-head .avatar{
+    width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.22);
+    display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;
+  }
+  .phone-head .who{line-height:1.2;}
+  .phone-head .who b{display:block;font-size:14px;font-weight:600;}
+  .phone-head .who span{font-size:11.5px;opacity:.85;}
+  .phone-body{
+    height:520px;overflow-y:auto;background:var(--chat-bg);
+    padding:14px 12px;display:flex;flex-direction:column;gap:8px;
+    scroll-behavior:smooth;
+  }
+  .bubble-row{display:flex;}
+  .bubble-row.out{justify-content:flex-end;}
+  .bubble{
+    max-width:82%;padding:8px 10px;border-radius:10px;font-size:13.5px;
+    line-height:1.4;box-shadow:0 1px 1px rgba(0,0,0,.05);position:relative;
+    animation:pop .22s ease-out;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .bubble.in{background:var(--bubble-bot);border-top-left-radius:2px;}
+  .bubble.out{background:var(--bubble-client);border-top-right-radius:2px;}
+  .bubble .meta{display:block;margin-top:4px;font-size:10px;color:var(--ink-dim);text-align:right;}
+  .bubble.system{
+    align-self:center;background:transparent;color:var(--ink-dim);
+    font-size:11px;text-align:center;max-width:90%;padding:4px 0;
+  }
+  .audio-bubble{display:flex;align-items:center;gap:8px;min-width:170px;}
+  .audio-bubble .play{
+    width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex:none;font-size:11px;
+  }
+  .wave{display:flex;align-items:center;gap:2px;height:18px;flex:1;}
+  .wave i{width:2.5px;background:var(--ink-dim);opacity:.55;border-radius:2px;display:block;}
+  .transcript{
+    margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);
+    font-size:12px;color:var(--ink-dim);font-style:italic;
+  }
+  .img-bubble img{width:100%;border-radius:6px;display:block;}
+  .img-caption{font-size:11px;color:var(--ink-dim);margin-top:5px;}
+  .typing{display:inline-flex;gap:3px;padding:9px 12px;}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--ink-dim);opacity:.5;animation:blink 1.1s infinite;}
+  .typing i:nth-child(2){animation-delay:.15s;} .typing i:nth-child(3){animation-delay:.3s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;} 40%{opacity:.8;}}
+
+  .phone-input{
+    display:flex;align-items:center;gap:8px;padding:10px 12px;
+    background:var(--surface);border-top:1px solid var(--line);
+  }
+  .phone-input .field{
+    flex:1;background:var(--surface-2);border-radius:20px;padding:9px 14px;
+    font-size:12.5px;color:var(--ink-dim);
+  }
+  .phone-input .send{
+    width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+
+  .scenario-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-dim);
+    padding:6px 10px;border-radius:999px;
+  }
+  .chip.active{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft);}
+
+  .progress-track{height:3px;background:var(--line);border-radius:2px;margin-top:12px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);width:0%;transition:width .3s;}
+
+  /* ---------- DASHBOARD ---------- */
+  .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media (max-width:760px){ .dash-grid{grid-template-columns:repeat(2,1fr);} }
+  .kpi{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;box-shadow:var(--shadow);
+  }
+  .kpi .label{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em;}
+  .kpi .value{
+    font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;
+    font-size:26px;font-weight:600;margin-top:4px;letter-spacing:-.01em;
+    transition:color .3s;
+  }
+  .kpi .delta{font-size:11.5px;margin-top:3px;color:var(--accent-ink);}
+  .kpi.pulse .value{animation:flash 1s ease;}
+  @keyframes flash{0%{color:var(--accent);}100%{color:var(--ink);}}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px 18px;margin-top:16px;
+  }
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .panel-head h3{font-family:'Sora',sans-serif;font-size:14.5px;margin:0;font-weight:600;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:6px;animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,122,92,.5);}70%{box-shadow:0 0 0 6px rgba(31,122,92,0);}100%{box-shadow:0 0 0 0 rgba(31,122,92,0);}}
+
+  table.leads{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.leads th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink-dim);padding:6px 8px;border-bottom:1px solid var(--line);font-weight:600;
+  }
+  table.leads td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.leads tr:last-child td{border-bottom:none;}
+  table.leads tr.new-row{animation:rowin .5s ease;}
+  @keyframes rowin{from{background:var(--accent-soft);}to{background:transparent;}}
+  .pill{
+    display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+    padding:3px 9px;border-radius:999px;
+  }
+  .pill.alto{background:var(--crit-soft);color:var(--crit);}
+  .pill.medio{background:var(--warn-soft);color:var(--warn);}
+  .pill.bajo{background:var(--navy-soft);color:var(--navy);}
+  .status{font-size:11px;color:var(--ink-dim);}
+  .status.done{color:var(--accent-ink);}
+
+  .matrix{display:none;}
+  .matrix.show{display:block;}
+  .matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+  @media (max-width:760px){.matrix-grid{grid-template-columns:1fr;}}
+  .matrix-block h4{
+    font-family:'Sora',sans-serif;font-size:12px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--ink-dim);margin:0 0 8px;font-weight:600;
+  }
+  .matrix-block ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;}
+  .matrix-block.wide{grid-column:1/-1;}
+  .price-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px;}
+  .price-table th{text-align:left;font-size:10.5px;color:var(--ink-dim);text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line);}
+  .price-table td{padding:7px 8px;border-bottom:1px solid var(--line);}
+  .price-table input{
+    width:90px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+    border:1px solid var(--line);border-radius:6px;padding:4px 7px;background:var(--surface-2);color:var(--ink);
+  }
+  .price-table input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .out-scope{font-size:11.5px;color:var(--ink-dim);background:var(--surface-2);padding:8px 10px;border-radius:8px;margin-top:6px;}
+
+  .ocr-card{
+    border:1px dashed var(--navy);background:var(--navy-soft);border-radius:10px;
+    padding:10px 12px;font-size:12px;margin-top:6px;
+  }
+  .ocr-card b{color:var(--navy);}
+
+  footer.hint{
+    text-align:center;font-size:11.5px;color:var(--ink-dim);margin-top:30px;
+  }
+  .empty-state{
+    color:var(--ink-dim);font-size:12.5px;text-align:center;padding:20px 0;
+  }
+
+  .toggle{
+    display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-dim);
+    user-select:none;cursor:pointer;
+  }
+  .toggle input{accent-color:var(--warn);width:14px;height:14px;cursor:pointer;}
+
+  /* ---------- COMIC CALLOUTS ---------- */
+  .callout{
+    position:fixed;z-index:70;max-width:236px;
+    background:var(--callout-bg);color:var(--callout-ink);
+    border:1.5px solid var(--callout-border);border-radius:15px;
+    padding:10px 13px 11px;box-shadow:0 10px 26px -8px rgba(20,15,0,.35);
+    opacity:0;transform:scale(.92) translateY(4px);
+    transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none;
+  }
+  .callout.show{opacity:1;transform:scale(1) translateY(0);}
+  .callout .lbl{
+    display:flex;align-items:center;gap:5px;font-family:'Sora',sans-serif;
+    font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--callout-label);margin-bottom:3px;
+  }
+  .callout .txt{font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;line-height:1.42;}
+  .callout::before{
+    content:'';position:absolute;width:13px;height:13px;
+    background:var(--callout-bg);border:1.5px solid var(--callout-border);
+  }
+  .callout[data-placement="top"]::before{bottom:-7.5px;left:50%;margin-left:-6.5px;border-top:none;border-left:none;transform:rotate(45deg);}
+  .callout[data-placement="bottom"]::before{top:-7.5px;left:50%;margin-left:-6.5px;border-bottom:none;border-right:none;transform:rotate(45deg);}
+  .callout[data-placement="left"]::before{right:-7.5px;top:50%;margin-top:-6.5px;border-bottom:none;border-left:none;transform:rotate(45deg);}
+  .callout[data-placement="right"]::before{left:-7.5px;top:50%;margin-top:-6.5px;border-top:none;border-right:none;transform:rotate(45deg);}
+  @media (prefers-reduced-motion: reduce){
+    .callout{transition:opacity .01s linear;}
+  }
+</style>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">B&amp;B</div>
+    <div class="brand-text">
+      <span class="name">Brit &amp; Bru Wines</span>
+      <span class="tag">Asistente de preventa boutique · Vinos, Whiskies &amp; Habanos</span>
+    </div>
+  </div>
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="calloutToggle" checked>💡 Explicaciones</label>
+    <button class="btn ghost" id="resetBtn" title="Reiniciar demo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+      Reiniciar
+    </button>
+    <button class="btn primary" id="playBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      Reproducir demo
+    </button>
+    <button class="btn" id="stepBtn">Siguiente paso →</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <div class="phone-wrap">
+    <h2 class="section-title">Cliente en WhatsApp</h2>
+    <div class="phone">
+      <div class="phone-head">
+        <div class="avatar">🥂</div>
+        <div class="who">
+          <b>Nubaria Capital — Eventos Corp.</b>
+          <span id="statusLine">escribiendo…</span>
+        </div>
+      </div>
+      <div class="phone-body" id="chatBody"></div>
+      <div class="phone-input">
+        <div class="field">Este chat se reproduce automáticamente</div>
+        <div class="send">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="scenario-row" id="scenarioRow">
+      <span class="chip" data-tag="texto">💬 Texto</span>
+      <span class="chip" data-tag="audio">🎙️ Audio → transcripción</span>
+      <span class="chip" data-tag="imagen">📷 Imagen → visión</span>
+      <span class="chip" data-tag="ocr">📄 OCR presupuesto competencia</span>
+      <span class="chip" data-tag="scoring">🎯 Lead scoring</span>
+    </div>
+  </div>
+
+  <div class="dash-col">
+    <h2 class="section-title">Dashboard de gestión comercial · en vivo</h2>
+    <div class="dash-grid">
+      <div class="kpi" id="kpiChats">
+        <div class="label">Chats hoy</div>
+        <div class="value">6</div>
+        <div class="delta">+1 en curso</div>
+      </div>
+      <div class="kpi" id="kpiFrt">
+        <div class="label">Tiempo 1ª respuesta</div>
+        <div class="value">8s</div>
+        <div class="delta">vs. 48–72 h manual</div>
+      </div>
+      <div class="kpi" id="kpiPresup">
+        <div class="label">Presupuestos generados</div>
+        <div class="value">14</div>
+        <div class="delta">este mes / vendedor</div>
+      </div>
+      <div class="kpi" id="kpiConv">
+        <div class="label">Conversión lead → cotización</div>
+        <div class="value">62%</div>
+        <div class="delta">+18 pts vs. manual</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3><span class="live-dot"></span>Conversaciones activas</h3>
+        <span class="status" id="leadsCount">5 leads</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="leads" id="leadsTable">
+          <thead>
+            <tr><th>Cliente</th><th>Rubro</th><th>Urgencia</th><th>Estado</th><th>Vendedor</th></tr>
+          </thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel matrix" id="matrixPanel">
+      <div class="panel-head">
+        <h3>📋 Matriz de cotización — generada automáticamente</h3>
+        <span class="status done">lista para validar precio</span>
+      </div>
+      <div class="matrix-grid">
+        <div class="matrix-block">
+          <h4>Resumen ejecutivo</h4>
+          <p style="font-size:12.5px;line-height:1.55;margin:0;">Evento corporativo para 150 invitados en Puerto Madero (20/11), con barra de vinos y whiskies premium durante la recepción y rincón de habanos para el cierre de la noche.</p>
+        </div>
+        <div class="matrix-block">
+          <h4>Entregables (WBS)</h4>
+          <ul>
+            <li>Curaduría y selección de vinos y whiskies</li>
+            <li>Montaje de barra premium + rincón de habanos</li>
+            <li>Sommelier y bartender especializado en sala</li>
+            <li>Logística, traslado y reposición durante el evento</li>
+          </ul>
+        </div>
+        <div class="matrix-block wide">
+          <h4>Grilla comercial — carga de precios</h4>
+          <table class="price-table">
+            <thead><tr><th>Ítem</th><th>Cant.</th><th>Precio unit.</th><th>% Desc.</th><th>Subtotal</th></tr></thead>
+            <tbody id="priceBody"></tbody>
+          </table>
+        </div>
+        <div class="matrix-block wide">
+          <h4>Supuestos y fuera de alcance</h4>
+          <div class="out-scope">No incluye catering de comida ni alquiler de mobiliario o salón · Cristalería, ceniceros y ventilación del rincón de habanos a cargo del predio · Válido por 15 días.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="hint">Demo ilustrativa · datos y contactos ficticios · construida para exposición comercial</footer>
+
+<script>
+(function(){
+  var chatBody = document.getElementById('chatBody');
+  var statusLine = document.getElementById('statusLine');
+  var progressFill = document.getElementById('progressFill');
+  var scenarioRow = document.getElementById('scenarioRow');
+  var leadsBody = document.getElementById('leadsBody');
+  var leadsCount = document.getElementById('leadsCount');
+  var matrixPanel = document.getElementById('matrixPanel');
+  var priceBody = document.getElementById('priceBody');
+  var playBtn = document.getElementById('playBtn');
+  var stepBtn = document.getElementById('stepBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var calloutToggle = document.getElementById('calloutToggle');
+
+  // ---------- COMIC CALLOUT ENGINE ----------
+  var calloutsEnabled = true;
+  calloutToggle.addEventListener('change', function(){
+    calloutsEnabled = calloutToggle.checked;
+    if (!calloutsEnabled) hideCallout(true);
+  });
+
+  var calloutEl = null, calloutTarget = null, calloutRAF = null;
+
+  function positionCallout(){
+    if (!calloutEl || !calloutTarget || !calloutTarget.isConnected){ hideCallout(true); return; }
+    var r = calloutTarget.getBoundingClientRect();
+    var cw = calloutEl.offsetWidth, ch = calloutEl.offsetHeight;
+    var placement = calloutEl.getAttribute('data-placement');
+    var top, left;
+    if (placement === 'bottom'){ top = r.bottom + 14; left = r.left + r.width/2 - cw/2; }
+    else if (placement === 'left'){ top = r.top + r.height/2 - ch/2; left = r.left - cw - 14; }
+    else if (placement === 'right'){ top = r.top + r.height/2 - ch/2; left = r.right + 14; }
+    else { top = r.top - ch - 14; left = r.left + r.width/2 - cw/2; }
+    left = Math.max(8, Math.min(left, window.innerWidth - cw - 8));
+    top = Math.max(8, Math.min(top, window.innerHeight - ch - 8));
+    calloutEl.style.top = top + 'px';
+    calloutEl.style.left = left + 'px';
+    calloutRAF = requestAnimationFrame(positionCallout);
+  }
+
+  function showCallout(target, label, text, placement){
+    hideCallout(true);
+    if (!calloutsEnabled || !target) return;
+    var c = document.createElement('div');
+    c.className = 'callout';
+    c.setAttribute('data-placement', placement || 'top');
+    c.innerHTML = '<div class="lbl">💡 '+label+'</div><div class="txt">'+text+'</div>';
+    document.body.appendChild(c);
+    calloutEl = c; calloutTarget = target;
+    requestAnimationFrame(function(){
+      positionCallout();
+      requestAnimationFrame(function(){ if (c.isConnected) c.classList.add('show'); });
+    });
+  }
+
+  function hideCallout(immediate){
+    if (calloutRAF){ cancelAnimationFrame(calloutRAF); calloutRAF = null; }
+    calloutTarget = null;
+    if (calloutEl){
+      var el = calloutEl; calloutEl = null;
+      el.classList.remove('show');
+      setTimeout(function(){ if (el.parentElement) el.remove(); }, immediate ? 0 : 220);
+    }
+  }
+
+  function bars(seed){
+    var out = '';
+    for (var i=0;i<26;i++){
+      var h = 4 + Math.round(Math.abs(Math.sin(i*seed))*14);
+      out += '<i style="height:'+h+'px"></i>';
+    }
+    return out;
+  }
+
+  var baseLeads = [
+    {name:'Estudio Larralde & Asoc.', rubro:'Regalos empresariales', urg:'medio', estado:'Pendiente de precio', vendedor:'Brenda S.'},
+    {name:'Hotel Alvear Riverside', rubro:'Wine & Cigar Bar', urg:'bajo', estado:'Cotizado', vendedor:'Ignacio M.'},
+    {name:'Fintech Orana', rubro:'Evento corporativo', urg:'medio', estado:'En proceso', vendedor:'Brenda S.'},
+    {name:'Bodega privada — Sr. Ibarra', rubro:'Cava personal', urg:'bajo', estado:'Ganado', vendedor:'Julieta F.'},
+    {name:'Consultora Meridian', rubro:'Fin de año corporativo', urg:'medio', estado:'En proceso', vendedor:'Ignacio M.'}
+  ];
+
+  function pillClass(u){ return 'pill ' + u; }
+  function renderLeads(){
+    leadsBody.innerHTML = baseLeads.map(function(l){
+      return '<tr class="'+(l._new?'new-row':'')+'"><td>'+l.name+'</td><td>'+l.rubro+'</td>'+
+        '<td><span class="'+pillClass(l.urg)+'">'+l.urg+'</span></td>'+
+        '<td class="status'+(l.estado==='Ganado'?' done':'')+'">'+l.estado+'</td><td>'+l.vendedor+'</td></tr>';
+    }).join('');
+    leadsCount.textContent = baseLeads.length + ' leads';
+  }
+  renderLeads();
+
+  function pulseKpi(id, newVal, delta){
+    var el = document.getElementById(id);
+    el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse');
+    el.querySelector('.value').textContent = newVal;
+    if (delta) el.querySelector('.delta').textContent = delta;
+  }
+
+  function activateChip(tag){
+    Array.prototype.forEach.call(scenarioRow.children, function(c){
+      c.classList.toggle('active', c.getAttribute('data-tag') === tag);
+    });
+  }
+
+  function scrollDown(){ chatBody.scrollTop = chatBody.scrollHeight; }
+
+  function addBubble(html, dir, extraClass){
+    var row = document.createElement('div');
+    row.className = 'bubble-row ' + (dir === 'out' ? 'out' : '');
+    var b = document.createElement('div');
+    b.className = 'bubble ' + (dir === 'out' ? 'out' : 'in') + (extraClass ? ' '+extraClass : '');
+    b.innerHTML = html;
+    row.appendChild(b);
+    chatBody.appendChild(row);
+    scrollDown();
+    return b;
+  }
+
+  function addSystem(text){
+    var row = document.createElement('div');
+    row.className = 'bubble-row';
+    var b = document.createElement('div');
+    b.className = 'bubble system';
+    b.textContent = text;
+    row.appendChild(b);
+    chatBody.appendChild(row);
+    scrollDown();
+  }
+
+  var typingEl = null;
+  function showTyping(dir){
+    typingEl = addBubble('<div class="typing"><i></i><i></i><i></i></div>', dir || 'in');
+    typingEl.style.padding = '0';
+  }
+  function hideTyping(){
+    if (typingEl && typingEl.parentElement){ typingEl.parentElement.remove(); }
+    typingEl = null;
+  }
+
+  function time(){
+    var d = new Date();
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
+
+  // ---------- SCRIPT ----------
+  var steps = [
+    {tag:'texto', status:'en línea', run:function(done){
+      showTyping('in');
+      setTimeout(function(){ hideTyping();
+        var b = addBubble('¡Hola! 👋 Soy el asistente de Brit &amp; Bru Wines. Contame en pocas palabras qué necesitás para tu evento y te voy guiando.<span class="meta">'+time()+'</span>','in');
+        showCallout(document.querySelector('.phone-head'), 'Atención inmediata', 'Responde solo en segundos, las 24 horas, sin que nadie del equipo tenga que estar mirando el chat.', 'bottom');
+        done();
+      }, 700);
+    }},
+    {tag:'texto', run:function(done){
+      var b = addBubble('Hola, necesito armar una propuesta de vinos, whiskies y habanos para un evento corporativo en Buenos Aires<span class="meta">'+time()+'</span>','out');
+      done();
+    }},
+    {tag:'texto', run:function(done){
+      showTyping('in');
+      setTimeout(function(){ hideTyping();
+        var b = addBubble('¡Genial! Para armar la propuesta necesito 3 datos: ① cantidad de invitados y fecha del evento, ② ubicación y tipo de salón, ③ si buscan barra libre de degustación, maridaje con cena, o ambos. ¿Me lo contás por audio o texto, como te resulte más cómodo?<span class="meta">'+time()+'</span>','in');
+        showCallout(b, 'Relevamiento guiado', 'El bot pregunta solo lo esencial para cotizar bien, en vez de dejar que el cliente escriba lo primero que se le ocurra.', 'right');
+        done();
+      }, 900);
+    }},
+    {tag:'audio', run:function(done){
+      activateChip('audio');
+      var b = addBubble('<div class="audio-bubble"><div class="play">▶</div><div class="wave">'+bars(0.9)+'</div><span style="font-size:11px;color:var(--ink-dim);">0:34</span></div><span class="meta">'+time()+'</span>','out');
+      showCallout(b, 'Multimodal', 'El cliente puede responder como le resulte más cómodo: acá manda un audio de WhatsApp en vez de escribir.', 'left');
+      done();
+    }},
+    {tag:'audio', run:function(done){
+      showTyping('in'); statusLine.textContent = 'transcribiendo audio…';
+      setTimeout(function(){ hideTyping(); statusLine.textContent = 'en línea';
+        var b = addBubble('Transcribí tu audio 🎙️ → <div class="transcript">"Somos 150 personas, el evento es el 20 de noviembre en nuestras oficinas de Puerto Madero. Queremos una barra de degustación de vinos y whiskies premium durante la recepción, y un rincón de habanos para el cierre de la noche."</div><span class="meta">'+time()+'</span>','in');
+        showCallout(b, 'Transcripción automática', 'La IA escucha el audio y lo convierte en texto estructurado, sin que ningún vendedor tenga que escucharlo ni tipear nada.', 'right');
+        done();
+      }, 1100);
+    }},
+    {tag:'imagen', run:function(done){
+      activateChip('imagen');
+      var b = addBubble('<div class="img-bubble"><img src="data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150"><rect width="260" height="150" fill="%23f7ecd9"/><rect x="20" y="24" width="220" height="102" rx="10" fill="%237a2635"/><ellipse cx="130" cy="75" rx="72" ry="30" fill="%23a3792f" opacity="0.5"/><g fill="%23fff2e2" font-family="monospace" font-size="10"><circle cx="60" cy="60" r="10" fill="%23f7ecd9"/><circle cx="85" cy="60" r="10" fill="%23f7ecd9"/><circle cx="110" cy="60" r="10" fill="%23f7ecd9"/><text x="45" y="100" fill="%23fbe9d9">SALÓN PUERTO MADERO</text></g></svg>')+'" alt="Foto del salón del evento con barra circular"/><div class="img-caption">Foto: salon_evento.jpg</div></div><span class="meta">'+time()+'</span>','out','img-bubble-wrap');
+      showCallout(b, 'Foto en vez de plano', 'También puede mandar una foto del salón con el celular, tal cual está pensado para el evento.', 'left');
+      done();
+    }},
+    {tag:'imagen', run:function(done){
+      showTyping('in'); statusLine.textContent = 'analizando imagen…';
+      setTimeout(function(){ hideTyping(); statusLine.textContent = 'en línea';
+        var b = addBubble('Analicé la foto 📷 → <div class="ocr-card"><b>Detectado:</b> salón con barra circular central y espacio abierto sin ventilación dedicada. Voy a sumar "rincón de habanos independiente con extracción" como ítem del presupuesto.<span class="meta" style="text-align:left;display:block;margin-top:4px;">visión por IA</span></div><span class="meta">'+time()+'</span>','in');
+        showCallout(b, 'Visión por IA', 'El bot "mira" la foto, detecta las condiciones reales del salón y ajusta solo el alcance del presupuesto. Esto evita sorpresas el día del evento.', 'right');
+        done();
+      }, 1200);
+    }},
+    {tag:'ocr', run:function(done){
+      activateChip('ocr');
+      var b = addBubble('Che, tengo un presupuesto de otro proveedor, ¿lo podés mirar?<span class="meta">'+time()+'</span>','out');
+      done();
+    }},
+    {tag:'ocr', run:function(done){
+      var b = addBubble('📄 presupuesto_cava_norte.pdf<span class="meta">'+time()+'</span>','out');
+      showCallout(b, 'Análisis competitivo', 'El cliente sube el presupuesto de otro proveedor directamente como archivo, igual que se lo mandaría a un vendedor.', 'left');
+      done();
+    }},
+    {tag:'ocr', run:function(done){
+      showTyping('in'); statusLine.textContent = 'leyendo PDF (OCR)…';
+      setTimeout(function(){ hideTyping(); statusLine.textContent = 'en línea';
+        var b = addBubble('Leí el presupuesto 📄 → <div class="ocr-card"><b>Proveedor:</b> Cava Norte Eventos · <b>Precio:</b> $4.200.000 · <b>Incluye:</b> vinos genéricos por copa · <b>Excluye:</b> whiskies, habanos y sommelier en sala · <b>Entrega:</b> 15 días.<br><br>Con esto el equipo comercial puede armar una contraoferta superadora en alcance y experiencia.</div><span class="meta">'+time()+'</span>','in');
+        showCallout(b, 'OCR + extracción', 'Lee el PDF, saca precio, alcance y exclusiones automáticamente. El vendedor recibe el comparativo listo, no un archivo para leer entero.', 'right');
+        done();
+      }, 1300);
+    }},
+    {tag:'scoring', run:function(done){
+      showTyping('in');
+      setTimeout(function(){ hideTyping();
+        var b = addBubble('Entendí lo siguiente: evento corporativo para 150 invitados, 20 de noviembre en Puerto Madero, barra de vinos y whiskies premium + rincón de habanos para el cierre. ¿Es correcto? ✅<span class="meta">'+time()+'</span>','in');
+        showCallout(b, 'Validación previa', 'Antes de pasarlo al vendedor, el bot resume todo y confirma con el cliente. Así se evitan cotizaciones armadas sobre datos mal entendidos.', 'right');
+        done();
+      }, 900);
+    }},
+    {tag:'scoring', run:function(done){
+      var b = addBubble('Sí, exacto 👍<span class="meta">'+time()+'</span>','out');
+      done();
+    }},
+    {tag:'scoring', run:function(done){
+      showTyping('in'); statusLine.textContent = 'generando matriz…';
+      setTimeout(function(){ hideTyping(); statusLine.textContent = 'en línea';
+        var b = addBubble('¡Listo! 🎉 Armé tu ficha técnica y ya se la asigné a <b>Brenda</b>, nuestra sommelier especializada en eventos corporativos. Te va a escribir en breve con el presupuesto formal.<span class="meta">'+time()+'</span>','in');
+        addSystem('Lead calificado · Urgencia alta · Asignado a Brenda S.');
+        // dashboard side effects
+        baseLeads.forEach(function(l){ l._new = false; });
+        baseLeads.unshift({name:'Nubaria Capital', rubro:'Evento corporativo', urg:'alto', estado:'Pendiente de precio', vendedor:'Brenda S.', _new:true});
+        renderLeads();
+        pulseKpi('kpiChats','7','+2 en curso');
+        pulseKpi('kpiFrt','6s','vs. 48–72 h manual');
+        pulseKpi('kpiPresup','15','este mes / vendedor');
+        pulseKpi('kpiConv','64%','+20 pts vs. manual');
+        matrixPanel.classList.add('show');
+        priceBody.innerHTML = [
+          ['Selección de vinos premium (por copa)', '150', 4500],
+          ['Barra de whiskies boutique (botella)', '12', 85000],
+          ['Habanos premium (unidad, cierre de noche)', '150', 9500],
+          ['Sommelier + bartender especializado (evento)', '1', 180000]
+        ].map(function(r){
+          var sub = (r[1]*r[2]).toLocaleString('es-AR');
+          return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td>'+
+            '<td><input type="text" value="$ '+r[2].toLocaleString('es-AR')+'" aria-label="Precio unitario"></td>'+
+            '<td><input type="text" value="0%" aria-label="Descuento" style="width:52px;"></td>'+
+            '<td style="font-family:\'IBM Plex Mono\',monospace;">$ '+sub+'</td></tr>';
+        }).join('');
+        showCallout(b, 'Cierre asignado', 'El chat termina con el lead ya asignado a un vendedor humano: la IA hace la preventa, la persona cierra la venta.', 'right');
+        setTimeout(function(){
+          if (!calloutsEnabled) return;
+          showCallout(document.querySelector('#leadsBody tr'), 'Lead calificado', 'Apenas termina el chat, aparece acá arriba con la urgencia detectada y el vendedor ya asignado.', 'bottom');
+        }, 900);
+        setTimeout(function(){
+          if (!calloutsEnabled) return;
+          showCallout(document.getElementById('kpiFrt'), 'Métricas en vivo', 'Los tiempos de respuesta y la conversión se actualizan solos, sin planillas ni reportes manuales.', 'bottom');
+        }, 2600);
+        setTimeout(function(){
+          matrixPanel.scrollIntoView({behavior:'smooth', block:'nearest'});
+          if (!calloutsEnabled) return;
+          showCallout(matrixPanel.querySelector('.panel-head h3'), 'Solo falta el precio', 'La ficha técnica, el alcance y la grilla ya están armados. El vendedor solo carga precio unitario y descuento.', 'bottom');
+        }, 4300);
+        done();
+      }, 1300);
+    }}
+  ];
+
+  var idx = 0;
+  var playing = false;
+  var playTimer = null;
+
+  function updateProgress(){
+    progressFill.style.width = Math.round((idx/steps.length)*100) + '%';
+  }
+
+  function runStep(cb){
+    if (idx >= steps.length){ stepBtn.disabled = true; playBtn.disabled = true; statusLine.textContent = 'conversación finalizada'; return; }
+    var s = steps[idx];
+    if (s.tag) activateChip(s.tag);
+    s.run(function(){
+      idx++; updateProgress();
+      if (cb) cb();
+    });
+  }
+
+  stepBtn.addEventListener('click', function(){
+    if (playing) return;
+    runStep();
+  });
+
+  playBtn.addEventListener('click', function(){
+    if (playing){
+      playing = false; playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Reproducir demo';
+      clearTimeout(playTimer);
+      return;
+    }
+    playing = true;
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg> Pausar';
+    var loop = function(){
+      if (!playing) return;
+      if (idx >= steps.length){ playing = false; playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Reproducir demo'; return; }
+      runStep(function(){ playTimer = setTimeout(loop, 650); });
+    };
+    loop();
+  });
+
+  resetBtn.addEventListener('click', function(){
+    playing = false; clearTimeout(playTimer);
+    hideCallout(true);
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Reproducir demo';
+    playBtn.disabled = false; stepBtn.disabled = false;
+    idx = 0; updateProgress();
+    chatBody.innerHTML = ''; statusLine.textContent = 'en línea';
+    matrixPanel.classList.remove('show');
+    baseLeads = [
+      {name:'Estudio Larralde & Asoc.', rubro:'Regalos empresariales', urg:'medio', estado:'Pendiente de precio', vendedor:'Brenda S.'},
+      {name:'Hotel Alvear Riverside', rubro:'Wine & Cigar Bar', urg:'bajo', estado:'Cotizado', vendedor:'Ignacio M.'},
+      {name:'Fintech Orana', rubro:'Evento corporativo', urg:'medio', estado:'En proceso', vendedor:'Brenda S.'},
+      {name:'Bodega privada — Sr. Ibarra', rubro:'Cava personal', urg:'bajo', estado:'Ganado', vendedor:'Julieta F.'},
+      {name:'Consultora Meridian', rubro:'Fin de año corporativo', urg:'medio', estado:'En proceso', vendedor:'Ignacio M.'}
+    ];
+    renderLeads();
+    document.getElementById('kpiChats').querySelector('.value').textContent = '6';
+    document.getElementById('kpiFrt').querySelector('.value').textContent = '8s';
+    document.getElementById('kpiPresup').querySelector('.value').textContent = '14';
+    document.getElementById('kpiConv').querySelector('.value').textContent = '62%';
+    Array.prototype.forEach.call(scenarioRow.children, function(c){ c.classList.remove('active'); });
+  });
+
+  updateProgress();
+})();
+</script>

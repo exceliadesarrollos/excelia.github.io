@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgroScout · Agente de Compras Inteligente</title>
+<style>
+:root{
+  --bg:#0b1210; --panel:#131f1a; --line:#20342c;
+  --txt:#e8f2ec; --mut:#8fa89c; --dim:#5f7a6e;
+  --acc:#5be49b; --acc2:#2fd4a0; --amber:#f5c451; --red:#ff6b6b; --blue:#63b3ff;
+  --r:12px; --sh:0 8px 30px rgba(0,0,0,.45);
+  --head:104px;                 /* alto de la barra superior de cada vista */
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;overflow:hidden}
+body{background:radial-gradient(1100px 520px at 82% -12%,#16352b 0%,transparent 60%),var(--bg);color:var(--txt);
+  font:13px/1.45 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+::-webkit-scrollbar{width:7px;height:7px}::-webkit-scrollbar-thumb{background:#24382f;border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- SHELL ---------- */
+.app{display:flex;height:100vh;overflow:hidden}
+.side{width:206px;flex:0 0 206px;background:linear-gradient(180deg,#0e1815,#0b1210);border-right:1px solid var(--line);
+  padding:14px 12px;display:flex;flex-direction:column;gap:14px;height:100vh}
+.brand{display:flex;align-items:center;gap:9px}
+.brand .mk{width:32px;height:32px;border-radius:9px;background:linear-gradient(140deg,var(--acc),#1a9e78);
+  display:grid;place-items:center;box-shadow:0 4px 14px rgba(91,228,155,.28)}
+.brand h1{font-size:15px;margin:0;letter-spacing:-.3px;font-weight:700}
+.brand small{display:block;color:var(--dim);font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;color:var(--mut);
+  font-weight:500;font-size:12.5px;width:100%;text-align:left;transition:.15s}
+.nav button:hover{background:#16241e;color:var(--txt)}
+.nav button.on{background:linear-gradient(90deg,rgba(91,228,155,.16),transparent);color:var(--acc);font-weight:600;
+  box-shadow:inset 2px 0 0 var(--acc)}
+.nav .pill{margin-left:auto;background:#1e3229;color:var(--acc);font-size:10px;padding:1px 6px;border-radius:20px;font-weight:700}
+.sideftr{margin-top:auto;font-size:10px;color:var(--dim);border-top:1px solid var(--line);padding-top:10px;line-height:1.5}
+.agentbox{background:#101c17;border:1px solid var(--line);border-radius:11px;padding:10px}
+.agentbox .row{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:5px}
+.bar{height:4px;background:#1a2a23;border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--blue));transition:width .4s}
+
+.main{flex:1;min-width:0;height:100vh;padding:14px 18px 12px;display:flex;flex-direction:column;overflow:hidden}
+.view{display:flex;flex-direction:column;min-height:0;flex:1}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.top h2{margin:0;font-size:19px;letter-spacing:-.5px}
+.top p{margin:1px 0 0;color:var(--mut);font-size:12px}
+.spacer{flex:1}
+.btn{background:#1a2c25;border:1px solid var(--line);padding:7px 12px;border-radius:9px;font-size:12.5px;font-weight:600;
+  color:var(--txt);transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:#22392f;border-color:#2d4a3e}
+.btn.pri{background:linear-gradient(135deg,var(--acc),#22b184);color:#052018;border:0;box-shadow:0 3px 13px rgba(91,228,155,.25)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.gho{background:transparent}
+.btn.sm{padding:4px 9px;font-size:11.5px;border-radius:7px}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-bottom:11px;flex:0 0 auto}
+.kpi{background:linear-gradient(160deg,var(--panel),#101a16);border:1px solid var(--line);border-radius:var(--r);
+  padding:9px 11px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;inset:0 0 auto auto;width:90px;height:90px;
+  background:radial-gradient(circle at 100% 0,rgba(91,228,155,.10),transparent 70%)}
+.kpi .lb{color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.kpi .vl{font-size:20px;font-weight:700;letter-spacing:-.7px;margin:3px 0 1px;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .dt{font-size:10.5px;color:var(--dim);line-height:1.35}
+.up{color:var(--acc)}.down{color:var(--red)}.warn{color:var(--amber)}
+
+/* ---------- CARDS / TABLES ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  display:flex;flex-direction:column;min-height:0}
+.card>header{padding:9px 13px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap;flex:0 0 auto}
+.card>header h3{margin:0;font-size:13.5px;font-weight:650}
+.card>header .sub{color:var(--dim);font-size:11px}
+.tw{overflow:auto;min-height:0;flex:1}
+table{width:100%;border-collapse:collapse;table-layout:auto}
+th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);font-weight:700;
+  padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;background:#0f1a16;position:sticky;top:0;z-index:2}
+th.srt{cursor:pointer;user-select:none}th.srt:hover{color:var(--acc)}
+td{padding:6px 9px;border-bottom:1px solid #182a23;font-size:12.5px;vertical-align:middle}
+tbody tr:hover{background:#16241e}
+tbody tr.sel{background:rgba(91,228,155,.07);box-shadow:inset 2px 0 0 var(--acc)}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.trunc{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- CHIPS ---------- */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:1.5px 7px;border-radius:20px;font-size:10.5px;font-weight:650;white-space:nowrap}
+.c-crit{background:rgba(255,107,107,.14);color:#ff8f8f}
+.c-alta{background:rgba(245,196,81,.14);color:var(--amber)}
+.c-media{background:rgba(99,179,255,.14);color:var(--blue)}
+.c-baja{background:rgba(143,168,156,.14);color:var(--mut)}
+.c-ok{background:rgba(91,228,155,.14);color:var(--acc)}
+.c-off{background:#1c2c25;color:var(--dim)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot.live{background:var(--acc);box-shadow:0 0 0 0 rgba(91,228,155,.6);animation:pl 1.8s infinite}
+@keyframes pl{70%{box-shadow:0 0 0 6px rgba(91,228,155,0)}100%{box-shadow:0 0 0 0 rgba(91,228,155,0)}}
+
+/* ---------- BRAND ---------- */
+.bd{display:inline-flex;align-items:center;gap:6px}
+.bd .lg{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:9px;font-weight:800;
+  color:#fff;letter-spacing:-.3px;flex:0 0 22px}
+.bd .nm{font-weight:600;font-size:12.5px;line-height:1.2}
+.bd .sup{display:block;font-size:10px;color:var(--dim);font-weight:400;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- FEED ---------- */
+.feed{overflow-y:auto;padding:3px 0;min-height:0;flex:1}
+.fi{display:flex;gap:8px;padding:6px 13px;font-size:11.5px;border-left:2px solid transparent;animation:in .35s}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}}
+.fi .tm{color:var(--dim);font-variant-numeric:tabular-nums;font-size:10.5px;flex:0 0 40px}
+.fi .ic{flex:0 0 14px;text-align:center}
+.fi.hit{border-left-color:var(--acc);background:rgba(91,228,155,.05)}
+.fi.al{border-left-color:var(--amber);background:rgba(245,196,81,.05)}
+.fi b{color:var(--txt);font-weight:650}.fi span{color:var(--mut)}
+
+/* ---------- FORM ---------- */
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fld label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:650}
+.fld input,.fld select{background:#0d1714;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;width:100%}
+.fld input:focus,.fld select:focus{outline:0;border-color:var(--acc2);box-shadow:0 0 0 3px rgba(47,212,160,.12)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 11px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 11px}
+.tog{display:flex;flex-wrap:wrap;gap:5px}
+.tog label{display:inline-flex;align-items:center;gap:5px;background:#0d1714;border:1px solid var(--line);
+  padding:5px 9px;border-radius:20px;font-size:11.5px;cursor:pointer;text-transform:none;letter-spacing:0;color:var(--mut)}
+.tog input{display:none}
+.tog label.on{background:rgba(91,228,155,.13);border-color:var(--acc2);color:var(--acc);font-weight:600}
+.hint{font-size:11px;color:var(--dim);margin:-5px 0 10px}
+
+/* ---------- MODAL / DRAWER ---------- */
+.ov{position:fixed;inset:0;background:rgba(4,9,7,.72);backdrop-filter:blur(4px);z-index:60;display:grid;place-items:center;padding:20px}
+.mo{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(760px,100%);max-height:92vh;
+  display:flex;flex-direction:column;box-shadow:var(--sh)}
+.mo header,.dr header{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.mo header h3,.dr header h3{margin:0;font-size:15px}
+.mo .body{padding:14px 18px;overflow-y:auto;min-height:0;flex:1}
+.mo footer{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex:0 0 auto}
+.x{margin-left:auto;color:var(--dim);font-size:18px;line-height:1;padding:3px 7px;border-radius:7px}
+.x:hover{background:#22392f;color:var(--txt)}
+.dr{position:fixed;top:0;right:0;height:100vh;width:min(520px,100%);background:var(--panel);border-left:1px solid var(--line);
+  z-index:70;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.5);animation:sl .25s}
+.dr .body{overflow-y:auto;padding:14px 18px;min-height:0;flex:1}
+@keyframes sl{from{transform:translateX(40px);opacity:0}}
+
+/* ---------- MISC ---------- */
+.grid2{display:grid;grid-template-columns:1.6fr .95fr;gap:11px;align-items:stretch;flex:1;min-height:0}
+.col{display:flex;flex-direction:column;gap:11px;min-height:0}
+.flt{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.flt select,.flt input{background:#0d1714;border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11.5px}
+.sc{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}
+.scbar{width:34px;height:4px;background:#1a2a23;border-radius:6px;overflow:hidden}
+.scbar i{display:block;height:100%}
+.opp{background:linear-gradient(135deg,rgba(91,228,155,.11),rgba(99,179,255,.07));border:1px solid #244a3c;
+  border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.opp:hover{border-color:var(--acc2)}
+.opp h4{margin:0 0 3px;font-size:13px}
+.opp p{margin:0;font-size:11.5px;color:var(--mut)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:12.5px;margin:0}
+.kv dt{color:var(--dim)}.kv dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.empty{padding:32px;text-align:center;color:var(--dim);font-size:12.5px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1a2c25;border:1px solid var(--acc2);
+  padding:9px 17px;border-radius:11px;z-index:99;font-size:12.5px;font-weight:600;box-shadow:var(--sh);animation:in .3s}
+.mini{font-size:10.5px;color:var(--dim);line-height:1.3}
+.delta{font-weight:700;font-variant-numeric:tabular-nums}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px;overflow-y:auto;
+  min-height:0;flex:1;align-content:start;align-items:start;padding:1px 4px 4px 1px}
+/* las tarjetas de oportunidad se dimensionan por su contenido, no por la fila */
+.cards>.card{display:block;height:auto;min-height:auto;overflow:visible}
+.cards>.card>header{display:flex}
+.cards .kv{grid-template-columns:auto minmax(0,1fr)}
+.cards .kv dd{white-space:nowrap}
+.cfgwrap{display:grid;grid-template-columns:1fr 1fr;gap:11px;flex:1;min-height:0}
+.cfgwrap .card>div{overflow-y:auto;padding:13px 15px;min-height:0}
+
+/* ---------- TOOLTIP ---------- */
+[data-tip]{cursor:help}
+th[data-tip],button[data-tip],tr[data-tip],.kpi[data-tip]{cursor:pointer}
+#tip{position:fixed;z-index:999;max-width:290px;background:#0a1512;border:1px solid var(--acc2);
+  border-radius:10px;padding:9px 11px;font-size:11.5px;line-height:1.5;color:var(--txt);
+  box-shadow:0 10px 34px rgba(0,0,0,.6);pointer-events:none;opacity:0;transform:translateY(4px);
+  transition:opacity .13s,transform .13s;visibility:hidden}
+#tip.on{opacity:1;transform:translateY(0);visibility:visible}
+#tip b{color:var(--acc);display:block;font-size:11.5px;margin-bottom:3px;letter-spacing:.2px}
+#tip em{color:var(--dim);font-style:normal;display:block;margin-top:5px;font-size:10.5px}
+
+@media(max-width:1140px){
+  html,body{overflow:auto}.app{height:auto;display:block}.side{display:none}
+  .main{height:auto;padding:14px;overflow:visible}.grid2,.cfgwrap{grid-template-columns:1fr}
+  .tw{max-height:none}.cards{overflow:visible}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand" data-tip="t:AgroScout|Agente autónomo de sourcing. Rastrea marketplaces, distribuidores, cooperativas y licitaciones del agro argentino, normaliza los datos y detecta ventanas de compra por debajo del precio de referencia.">
+      <div class="mk"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#052018" stroke-width="2.2" stroke-linecap="round"><path d="M12 21c0-6 3-11 8-13-1 7-4 11-8 13Z"/><path d="M12 21C9 17 4 15 3 8c6 1 9 5 9 13Z"/></svg></div>
+      <div><h1>AgroScout</h1><small>AI Sourcing Agent</small></div>
+    </div>
+    <nav class="nav">
+      <button class="on" data-v="dash" data-tip="t:Tablero de control|Vista de mando: qué está monitoreando el agente ahora mismo, cuánto ahorro acumuló y qué está pasando en tiempo real.">◧ Tablero <span class="pill" id="navA">6</span></button>
+      <button data-v="res" data-tip="t:Hoja de resultados|Todas las cotizaciones capturadas, normalizadas a una misma unidad y moneda para que sean comparables entre fuentes distintas.">◫ Resultados <span class="pill" id="navR">0</span></button>
+      <button data-v="opps" data-tip="t:Oportunidades|Solo las ofertas accionables: score ≥75 y ahorro positivo frente al precio de referencia.">◆ Oportunidades <span class="pill" id="navO">0</span></button>
+      <button data-v="cfg" data-tip="t:Configuración|Parámetros del agente: cadencia, sensibilidad, umbrales de alerta, fuentes, marcas y regiones.">⚙ Configuración</button>
+    </nav>
+    <div class="agentbox">
+      <div class="row" data-tip="t:Estado del agente|«Activo» = a la espera del próximo ciclo. «Barriendo» = está recorriendo fuentes y extrayendo cotizaciones en este momento."><span><span class="dot live"></span> Agente</span><b id="agSt" class="up">Activo</b></div>
+      <div class="row" data-tip="t:Fuentes barridas|Sitios recorridos en el ciclo actual. Cada fuente se parsea, se estructura y se normaliza antes de comparar."><span>Fuentes</span><b id="agSrc">0 / 34</b></div>
+      <div class="bar"><i id="agBar" style="width:0%"></i></div>
+      <div class="row" style="margin:6px 0 0" data-tip="t:Último barrido|Hora del último ciclo completo. Cuanto más corta la cadencia, menor el riesgo de perder una ventana de precio."><span>Último</span><b id="agTime">—</b></div>
+    </div>
+    <div class="sideftr">Demo MVP · datos simulados<br>Excelia Desarrollos · 2026</div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div id="layer"></div>
+<div id="tip"></div>
+
+<script>
+/* =====================================================================
+   1. CATÁLOGO
+   ===================================================================== */
+const BRANDS = {
+  "Bayer":{c:"#0f6bb5",i:"BY"},"Syngenta":{c:"#009a44",i:"SY"},"Corteva":{c:"#0072ce",i:"CO"},
+  "BASF":{c:"#00793a",i:"BF"},"FMC":{c:"#0033a0",i:"FM"},"Nufarm":{c:"#e2001a",i:"NF"},
+  "Rizobacter":{c:"#f28c00",i:"RZ"},"Profertil":{c:"#004b93",i:"PF"},"YPF Agro":{c:"#0072bc",i:"YP"},
+  "Atanor":{c:"#8b1f2f",i:"AT"},"Red Surcos":{c:"#c1121f",i:"RS"},"Adama":{c:"#e4002b",i:"AD"},
+  "Summit Agro":{c:"#005baa",i:"SA"},"Don Mario":{c:"#1b5e20",i:"DM"},
+};
+const SUPPLIERS=["Agrofy Market","Agroads","De Frente al Campo","Coop. Agrícola Pergamino","Distribuidora Agro Centro",
+  "AgroSitio Ofertas","Cooperativa ACA","Los Grobo Insumos","Bunge Insumos","Nutrien Ag Solutions"];
+const REGIONS=["Buenos Aires","Córdoba","Santa Fe","Entre Ríos","La Pampa","Chaco","Tucumán","San Luis"];
+
+/* =====================================================================
+   2. ESTADO
+   ===================================================================== */
+const S={
+  view:"dash", fx:1180,
+  agent:{freq:15,sensitivity:5,autoAlert:true,minSaving:8,sources:34,scanned:0,lastRun:null,running:false},
+  feed:[],
+  searches:[
+    {id:1,on:true,name:"Glifosato 62% SL — reposición campaña",cat:"Herbicida",brands:["Bayer","Atanor","Red Surcos","Nufarm"],
+     crit:"Crítico",unit:"USD/L",target:4.10,qty:48000,regions:["Buenos Aires","Córdoba","Santa Fe"],
+     freq:"15 min",channels:["Marketplaces","Distribuidores","Cooperativas"],base:4.85},
+    {id:2,on:true,name:"Urea granulada — prefinanciación siembra",cat:"Fertilizante",brands:["Profertil","YPF Agro"],
+     crit:"Crítico",unit:"USD/tn",target:452,qty:1800,regions:["Buenos Aires","La Pampa"],
+     freq:"30 min",channels:["Marketplaces","Distribuidores","Licitaciones"],base:498},
+    {id:3,on:true,name:"Fungicida triazol+estrobilurina — trigo",cat:"Fungicida",brands:["Syngenta","BASF","Corteva"],
+     crit:"Alta",unit:"USD/L",target:23.50,qty:6200,regions:["Buenos Aires","Santa Fe","Entre Ríos"],
+     freq:"1 h",channels:["Distribuidores","Cooperativas"],base:26.90},
+    {id:4,on:true,name:"Inoculante soja alta carga",cat:"Inoculante",brands:["Rizobacter","Syngenta","Adama"],
+     crit:"Media",unit:"USD/dosis",target:1.95,qty:52000,regions:["Córdoba","Santa Fe","Chaco"],
+     freq:"6 h",channels:["Marketplaces","Distribuidores"],base:2.28},
+    {id:5,on:true,name:"Fosfato monoamónico (MAP)",cat:"Fertilizante",brands:["Profertil","Bayer"],
+     crit:"Alta",unit:"USD/tn",target:690,qty:950,regions:["Buenos Aires","Córdoba"],
+     freq:"1 h",channels:["Marketplaces","Licitaciones"],base:742},
+    {id:6,on:false,name:"Insecticida diamida — lepidópteros",cat:"Insecticida",brands:["FMC","Corteva","Summit Agro"],
+     crit:"Media",unit:"USD/L",target:78.00,qty:1400,regions:["Tucumán","Chaco","Santa Fe"],
+     freq:"6 h",channels:["Distribuidores"],base:86.40},
+  ],
+  results:[], activeSearch:null, sort:{k:"score",d:-1},
+  filters:{crit:"",region:"",only:"",q:""}, compare:new Set(),
+};
+let seq=100;
+
+/* =====================================================================
+   3. MOTOR DE SIMULACIÓN
+   ===================================================================== */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const money=(n,d=2)=>n.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const usd=(n,d=0)=>"US$ "+n.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const dec=u=>u==="USD/tn"?0:2;
+
+function makeOffer(s){
+  const bs=s.brands.filter(b=>BRANDS[b]); const brand=pick(bs.length?bs:Object.keys(BRANDS));
+  const luck=Math.random();
+  const f = luck>0.88? rnd(0.74,0.84) : luck>0.66? rnd(0.85,0.94) : rnd(0.95,1.12);
+  const price=+(s.base*f).toFixed(dec(s.unit));
+  const hist=[]; let p=s.base*rnd(1.0,1.15);
+  for(let i=0;i<11;i++){p*=rnd(0.975,1.02);hist.push(+p.toFixed(2));}
+  hist.push(price);
+  const stock=Math.round(rnd(0.25,1.6)*s.qty), covered=Math.min(stock,s.qty);
+  return scoreOffer({id:++seq,sid:s.id,search:s.name,cat:s.cat,crit:s.crit,unit:s.unit,brand,
+    supplier:pick(SUPPLIERS),region:pick(s.regions.length?s.regions:REGIONS),
+    price,base:s.base,target:s.target,hist,stock,covered,qty:s.qty,
+    pay:pick(["Contado","30 días","60 días","90 días","Canje soja","Canje maíz","Prefinanciado 120d"]),
+    delivery:Math.round(rnd(2,26)),ts:new Date(),
+    vsMkt:((price/s.base)-1)*100, vsTgt:((price/s.target)-1)*100,
+    saving:Math.max(0,s.base-price)*covered, score:0, flags:[]});
+}
+function scoreOffer(o){
+  let sc=50;
+  sc+=Math.max(-25,Math.min(35,-o.vsMkt*1.6));
+  if(o.price<=o.target) sc+=12;
+  sc+=(o.covered/o.qty)*14;
+  if(/Canje|Prefinan|90|60/.test(o.pay)) sc+=7;
+  sc-=Math.max(0,(o.delivery-12))*0.7;
+  if(o.crit==="Crítico") sc+=5;
+  o.trend=(o.hist.at(-1)-o.hist.at(-4))/o.hist.at(-4)*100;
+  if(o.trend<-3) sc+=6;
+  o.score=Math.max(3,Math.min(99,Math.round(sc)));
+  o.flags=[];
+  if(o.vsMkt<=-14) o.flags.push({t:"Precio outlier",c:"c-ok"});
+  if(o.price<=o.target) o.flags.push({t:"Cumple objetivo",c:"c-ok"});
+  if(o.covered<o.qty*0.4) o.flags.push({t:"Stock parcial",c:"c-alta"});
+  if(/Canje/.test(o.pay)) o.flags.push({t:"Canje granos",c:"c-media"});
+  if(o.delivery>18) o.flags.push({t:"Entrega lenta",c:"c-baja"});
+  return o;
+}
+
+/* =====================================================================
+   4. AGENTE
+   ===================================================================== */
+function log(txt,kind=""){
+  const d=new Date();
+  S.feed.unshift({t:d.toTimeString().slice(0,5),txt,kind});
+  if(S.feed.length>60) S.feed.pop();
+  const el=document.getElementById("feedList"); if(el) el.innerHTML=feedHTML();
+}
+const ICON={hit:"◆",al:"⚠","":"›"};
+const feedHTML=()=>S.feed.map(f=>`<div class="fi ${f.kind}"><span class="tm">${f.t}</span><span class="ic">${ICON[f.kind]}</span><div>${f.txt}</div></div>`).join("")||`<div class="empty">Sin actividad todavía.</div>`;
+
+let runTimer=null;
+function runAgent(manual){
+  if(S.agent.running) return;
+  const act=S.searches.filter(s=>s.on);
+  if(!act.length){toast("No hay búsquedas activas");return;}
+  S.agent.running=true; S.agent.scanned=0;
+  document.getElementById("agSt").textContent="Barriendo…";
+  log(`<b>Barrido iniciado</b> <span>— ${act.length} búsquedas · ${S.agent.sources} fuentes</span>`);
+  let step=0;
+  runTimer=setInterval(()=>{
+    step++;
+    S.agent.scanned=Math.min(S.agent.sources,Math.round(S.agent.sources*step/12));
+    syncAgentUI();
+    if(step%2===0){
+      const o=makeOffer(pick(act)); S.results.unshift(o);
+      if(o.score>=78||o.vsMkt<=-12){
+        log(`<b style="color:var(--acc)">Oportunidad</b> <span>— ${o.brand} en ${o.supplier}: ${money(o.price,dec(o.unit))} · <b class="up">${o.vsMkt.toFixed(1)}%</b> vs mercado · ahorro ${usd(o.saving)}</span>`,"hit");
+        if(S.agent.autoAlert&&Math.abs(o.vsMkt)>=S.agent.minSaving)
+          log(`<b style="color:var(--amber)">Alerta enviada</b> <span>— WhatsApp + email a Compras</span>`,"al");
+      } else log(`Cotización capturada <span>— ${o.brand} · ${o.supplier} · ${money(o.price,dec(o.unit))} (${o.vsMkt>0?'+':''}${o.vsMkt.toFixed(1)}%)</span>`);
+    } else log(`Parseando <span>${pick(SUPPLIERS)} — extracción estructurada + normalización de unidades…</span>`);
+    if(step>=12){
+      clearInterval(runTimer); S.agent.running=false; S.agent.lastRun=new Date();
+      document.getElementById("agSt").textContent="Activo";
+      log(`<b>Barrido completo</b> <span>— ahorro potencial acumulado ${usd(totalSaving())}</span>`,"hit");
+      syncAgentUI(); render();
+    }
+  }, manual?240:400);
+}
+function syncAgentUI(){
+  document.getElementById("agSrc").textContent=`${S.agent.scanned} / ${S.agent.sources}`;
+  document.getElementById("agBar").style.width=(S.agent.scanned/S.agent.sources*100)+"%";
+  document.getElementById("agTime").textContent=S.agent.lastRun?S.agent.lastRun.toTimeString().slice(0,5):"—";
+  document.getElementById("navA").textContent=S.searches.filter(s=>s.on).length;
+  document.getElementById("navR").textContent=S.results.length;
+  document.getElementById("navO").textContent=opportunities().length;
+}
+const totalSaving=()=>opportunities().reduce((a,o)=>a+o.saving,0);
+const opportunities=()=>S.results.filter(o=>o.score>=75&&o.saving>0);
+
+/* =====================================================================
+   5. TOOLTIPS
+   ===================================================================== */
+const TIP=document.getElementById("tip");
+let tipT=null;
+function tipHTML(raw){
+  if(raw.startsWith("t:")){const [h,...r]=raw.slice(2).split("|");return `<b>${h}</b>${r.join("|")}`;}
+  return raw;
+}
+document.addEventListener("mouseover",e=>{
+  const el=e.target.closest("[data-tip]"); if(!el) return;
+  clearTimeout(tipT);
+  tipT=setTimeout(()=>{
+    TIP.innerHTML=tipHTML(el.dataset.tip);
+    TIP.classList.add("on"); place(el);
+  },110);
+});
+document.addEventListener("mouseout",e=>{
+  if(!e.target.closest("[data-tip]")) return;
+  clearTimeout(tipT); TIP.classList.remove("on");
+});
+document.addEventListener("mousemove",e=>{ if(TIP.classList.contains("on")) place(null,e); },{passive:true});
+function place(el,ev){
+  const r=TIP.getBoundingClientRect(); let x,y;
+  if(ev){ x=ev.clientX+16; y=ev.clientY+18; }
+  else { const b=el.getBoundingClientRect(); x=b.left; y=b.bottom+8; }
+  x=Math.min(x, innerWidth-r.width-10); y=Math.min(y, innerHeight-r.height-10);
+  TIP.style.left=Math.max(8,x)+"px"; TIP.style.top=Math.max(8,y)+"px";
+}
+const T=(head,body)=>`data-tip="t:${head.replace(/"/g,'&quot;')}|${body.replace(/"/g,'&quot;')}"`;
+
+/* Diccionario de conceptos reutilizados */
+const DEF={
+  score:["Score IA (0-100)","Puntaje compuesto del agente. Pondera precio vs referencia de mercado, cumplimiento del precio objetivo, cobertura del volumen requerido, calidad de las condiciones de pago y plazo logístico. ≥75 se considera accionable."],
+  vsMkt:["Δ vs mercado","Diferencia porcentual entre el precio ofertado y el precio de referencia del insumo. Negativo = por debajo del mercado; es la fuente directa del ahorro."],
+  vsTgt:["Δ vs objetivo","Diferencia contra el precio objetivo que fijó Compras para esta búsqueda. Negativo = la oferta entra dentro del presupuesto planificado."],
+  crit:["Criticidad","Prioridad del insumo. «Crítico» = su falta frena la labor y genera lucro cesante, por lo que el agente lo revisa más seguido y tolera menos demora de entrega."],
+  saving:["Ahorro estimado","(Precio de referencia − precio ofertado) × volumen que la oferta alcanza a cubrir. Es el beneficio económico concreto de tomar esa oferta en lugar del precio de mercado."],
+  trend:["Tendencia de precio","Últimas 12 capturas del mismo insumo. Una pendiente descendente sugiere que conviene esperar; una ascendente, que la ventana se está cerrando."],
+  stock:["Stock vs necesidad","Volumen disponible en el proveedor frente al volumen que necesita comprar. Una oferta barata que solo cubre el 30% obliga a partir la compra en dos operaciones."],
+  pay:["Condiciones comerciales","Forma de pago y plazo de entrega. El canje por granos y la prefinanciación tienen valor financiero propio: el agente los suma al score, no solo el precio de lista."],
+  price:["Precio normalizado","Precio llevado a una unidad y moneda comunes (USD por litro, tonelada, kg o dosis) para que fuentes con presentaciones distintas sean comparables."],
+  brand:["Marca y proveedor","Marca del producto y canal donde se publicó la oferta: marketplace, distribuidor, cooperativa o licitación."],
+};
+const D=k=>T(DEF[k][0],DEF[k][1]);
+
+/* =====================================================================
+   6. HELPERS DE RENDER
+   ===================================================================== */
+function brandBadge(b,sup){
+  const d=BRANDS[b]||{c:"#3a5449",i:b.slice(0,2).toUpperCase()};
+  return `<div class="bd"><div class="lg" style="background:${d.c}">${d.i}</div>
+    <div><div class="nm">${b}</div>${sup?`<span class="sup">${sup}</span>`:""}</div></div>`;
+}
+const CRITC={"Crítico":"c-crit","Alta":"c-alta","Media":"c-media","Baja":"c-baja"};
+const critChip=c=>`<span class="chip ${CRITC[c]||'c-baja'}" ${D('crit')}>${c}</span>`;
+function scoreCell(n){
+  const c=n>=80?"var(--acc)":n>=65?"var(--amber)":"var(--dim)";
+  const q=n>=80?"Accionable ahora":n>=65?"Interesante, revisar condiciones":"Por debajo del umbral de acción";
+  return `<span class="sc" style="color:${c}" ${T("Score "+n+"/100",q+". "+DEF.score[1])}>${n}<span class="scbar"><i style="width:${n}%;background:${c}"></i></span></span>`;
+}
+function spark(h,w=62,ht=18){
+  const mn=Math.min(...h),mx=Math.max(...h),r=(mx-mn)||1;
+  const pts=h.map((v,i)=>`${(i/(h.length-1)*w).toFixed(1)},${(ht-((v-mn)/r)*ht).toFixed(1)}`).join(" ");
+  return `<svg width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}"><polyline points="${pts}" fill="none"
+    stroke="${h.at(-1)<h[0]?'var(--acc)':'var(--red)'}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+let gradN=0;
+function lineChart(h,w=470,ht=120){
+  const mn=Math.min(...h)*0.985,mx=Math.max(...h)*1.015,r=mx-mn;
+  const X=i=>28+i/(h.length-1)*(w-40), Y=v=>10+(1-(v-mn)/r)*(ht-32);
+  const pts=h.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  const grid=[0,.25,.5,.75,1].map(t=>`<line x1="28" x2="${w-12}" y1="${10+t*(ht-32)}" y2="${10+t*(ht-32)}" stroke="#1d3029"/>`).join("");
+  const gid="ag"+(++gradN);
+  return `<svg viewBox="0 0 ${w} ${ht}" style="display:block;width:100%;height:auto" ${D('trend')}>
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5be49b" stop-opacity=".28"/><stop offset="1" stop-color="#5be49b" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<polygon points="28,${ht-22} ${pts} ${X(h.length-1)},${ht-22}" fill="url(#${gid})"/>
+    <polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="2.1" stroke-linejoin="round"/>
+    <circle cx="${X(h.length-1)}" cy="${Y(h.at(-1))}" r="4" fill="var(--acc)"/>
+    <text x="2" y="14" fill="#5f7a6e" font-size="9">${money(mx,1)}</text>
+    <text x="2" y="${ht-22}" fill="#5f7a6e" font-size="9">${money(mn,1)}</text></svg>`;
+}
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
+
+/* =====================================================================
+   7. VISTAS
+   ===================================================================== */
+function render(){
+  document.getElementById("main").innerHTML=({dash:vDash,res:vRes,opps:vOpps,cfg:vCfg})[S.view]();
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===S.view));
+  syncAgentUI(); TIP.classList.remove("on");
+}
+
+/* ---------- 7.1 TABLERO ---------- */
+function vDash(){
+  const act=S.searches.filter(s=>s.on);
+  const exposure=S.searches.reduce((a,s)=>a+s.base*s.qty,0);
+  const sav=totalSaving();
+  return `<div class="view">
+  <div class="top">
+    <div><h2>Tablero de control</h2><p>${S.agent.sources} fuentes monitoreadas · ${act.length} búsquedas activas · FX ${S.fx} ARS/USD</p></div>
+    <div class="spacer"></div>
+    <button class="btn gho" onclick="openFx()" ${T("Tipo de cambio","Define el FX con el que se convierten los ahorros en dólares a pesos en todo el tablero.")}>⇄ FX</button>
+    <button class="btn" onclick="editSearch(null)" ${T("Nueva búsqueda","Da de alta un insumo a monitorear: marcas, precio objetivo, volumen, regiones, criticidad y cadencia.")}>＋ Búsqueda</button>
+    <button class="btn pri" onclick="runAgent(true)" ${T("Ejecutar barrido","Fuerza un ciclo inmediato: el agente recorre las fuentes, extrae cotizaciones, las normaliza y las puntúa. En producción esto corre solo cada N minutos.")}>▶ Barrer ahora</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi" ${T("Ahorro capturado","Suma del ahorro de todas las oportunidades vigentes: lo que la empresa deja de gastar si toma esas ofertas en lugar del precio de mercado.")}>
+      <div class="lb">Ahorro capturado</div><div class="vl up">${usd(sav)}</div>
+      <div class="dt">${opportunities().length} oportunidades · ARS ${(sav*S.fx/1e6).toFixed(1)} M</div></div>
+    <div class="kpi" ${T("Exposición gestionada","Valor total de compra bajo vigilancia del agente (precio de referencia × volumen de cada búsqueda). Es la base sobre la que se mide el impacto.")}>
+      <div class="lb">Exposición gestionada</div><div class="vl">${usd(exposure)}</div>
+      <div class="dt">Valor de compra bajo monitoreo</div></div>
+    <div class="kpi" ${T("Ahorro sobre exposición","Ahorro capturado dividido la exposición gestionada. Es el KPI que suele defender la inversión en el sistema: 1-2 puntos ya pagan la herramienta.")}>
+      <div class="lb">Ahorro s/ exposición</div><div class="vl ${sav/exposure>0.05?'up':''}">${(sav/exposure*100).toFixed(1)}%</div>
+      <div class="dt">Objetivo del agente: ≥ ${S.agent.minSaving}%</div></div>
+    <div class="kpi" ${T("Cotizaciones capturadas","Ofertas extraídas y normalizadas en la sesión. Un humano tarda horas en reunir lo que el agente junta por ciclo.")}>
+      <div class="lb">Cotizaciones</div><div class="vl">${S.results.length}</div>
+      <div class="dt">Cada ${S.agent.freq} min · último ${S.agent.lastRun?S.agent.lastRun.toTimeString().slice(0,5):"—"}</div></div>
+    <div class="kpi" ${T("Insumos críticos","Búsquedas marcadas como críticas y activas. Su desabastecimiento detiene la labor, por eso concentran la mayor frecuencia de barrido.")}>
+      <div class="lb">Críticos en vigilancia</div><div class="vl warn">${act.filter(s=>s.crit==="Crítico").length}</div>
+      <div class="dt">Quiebre de stock = lucro cesante</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="col">
+      <div class="card">
+        <header><h3>Búsquedas activas</h3><span class="sub">click en la fila → resultados</span>
+          <div class="spacer"></div><button class="btn sm" onclick="editSearch(null)">＋ Agregar</button></header>
+        <div class="tw"><table>
+          <thead><tr>
+            <th ${T("Estado","Click para pausar o reactivar. Una búsqueda pausada deja de consumir ciclos del agente pero conserva su historial.")}>Estado</th>
+            <th>Insumo</th>
+            <th ${D('crit')}>Crit.</th>
+            <th ${T("Marcas objetivo","Fabricantes admitidos para esta búsqueda. El agente descarta ofertas de marcas fuera de la lista aprobada.")}>Marcas</th>
+            <th class="num" ${T("Precio objetivo","Precio máximo que Compras fijó como aceptable. El agente prioriza las ofertas que lo cumplen.")}>Objetivo</th>
+            <th class="num" ${T("Mejor precio hoy","Cotización más baja capturada para este insumo en el ciclo actual, con su brecha contra el objetivo.")}>Mejor hoy</th>
+            <th class="num" ${T("Volumen","Cantidad total a comprar. Determina cuánto ahorro genera cada punto de diferencia de precio.")}>Volumen</th>
+            <th ${T("Frecuencia","Cada cuánto el agente revisa esta búsqueda. Los insumos volátiles o críticos justifican cadencias de minutos.")}>Frec.</th>
+            <th></th></tr></thead>
+          <tbody>${S.searches.map(s=>{
+            const rs=S.results.filter(r=>r.sid===s.id);
+            const best=rs.length?Math.min(...rs.map(r=>r.price)):null;
+            const gap=best?((best/s.target-1)*100):null;
+            return `<tr onclick="goSearch(${s.id})" style="cursor:pointer">
+              <td onclick="event.stopPropagation();toggleSearch(${s.id})">
+                <span class="chip ${s.on?'c-ok':'c-off'}">${s.on?'<span class="dot live"></span> Activa':'Pausada'}</span></td>
+              <td><b class="trunc" style="display:block">${s.name}</b><div class="mini">${s.cat} · ${s.regions.join(", ")}</div></td>
+              <td>${critChip(s.crit)}</td>
+              <td>${s.brands.slice(0,3).map(b=>{const d=BRANDS[b]||{c:"#3a5449",i:b.slice(0,2)};
+                return `<span style="background:${d.c};width:19px;height:19px;border-radius:5px;display:inline-grid;place-items:center;font-size:8px;font-weight:800;color:#fff;margin-right:2px" ${T(b,"Marca incluida en el alcance de esta búsqueda.")}>${d.i}</span>`}).join("")}</td>
+              <td class="num">${money(s.target,dec(s.unit))}<div class="mini">${s.unit}</div></td>
+              <td class="num">${best?`<b class="${gap<=0?'up':'warn'}">${money(best,dec(s.unit))}</b><div class="mini">${gap>0?'+':''}${gap.toFixed(1)}% obj.</div>`:'<span class="mini">esperando…</span>'}</td>
+              <td class="num">${s.qty.toLocaleString('es-AR')}<div class="mini">${s.unit.split("/")[1]}</div></td>
+              <td><span class="mini">${s.freq}</span></td>
+              <td onclick="event.stopPropagation()"><button class="btn sm gho" onclick="editSearch(${s.id})">Editar</button></td>
+            </tr>`}).join("")}</tbody></table></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card" style="flex:1.15">
+        <header><h3><span class="dot live"></span> Actividad del agente</h3><div class="spacer"></div>
+          <span class="sub" ${T("Log en vivo","Traza de lo que hace el agente: qué fuente parsea, qué cotización extrae y por qué la marca como oportunidad. Es la auditoría del sistema.")}>tiempo real ⓘ</span></header>
+        <div class="feed" id="feedList">${feedHTML()}</div>
+      </div>
+      <div class="card" style="flex:1">
+        <header><h3>Top oportunidades</h3><div class="spacer"></div>
+          <button class="btn sm gho" onclick="nav('opps')">Ver todas →</button></header>
+        <div style="padding:10px 12px;overflow-y:auto;min-height:0">
+          ${opportunities().sort((a,b)=>b.saving-a.saving).slice(0,3).map(o=>`
+            <div class="opp" onclick="detail(${o.id})" ${T("Oportunidad detectada","Oferta con score ≥75 y precio bajo la referencia. Click para abrir el análisis completo con serie de precios y alternativas.")}>
+              <h4>${brandBadge(o.brand,o.supplier)}</h4>
+              <p style="margin-top:6px" class="trunc">${o.search}</p>
+              <div style="display:flex;gap:10px;margin-top:6px;font-size:11.5px;align-items:center">
+                <span>${money(o.price,dec(o.unit))} <span class="mini">${o.unit}</span></span>
+                <span class="up delta">${o.vsMkt.toFixed(1)}%</span>
+                <span class="spacer"></span><b class="up">${usd(o.saving)}</b></div>
+            </div>`).join("")||`<div class="empty">Ejecutá un barrido para detectar oportunidades.</div>`}
+        </div>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+/* ---------- 7.2 RESULTADOS ---------- */
+function filtered(){
+  let r=[...S.results];
+  if(S.activeSearch) r=r.filter(o=>o.sid===S.activeSearch);
+  const f=S.filters;
+  if(f.crit) r=r.filter(o=>o.crit===f.crit);
+  if(f.region) r=r.filter(o=>o.region===f.region);
+  if(f.only==="tgt") r=r.filter(o=>o.price<=o.target);
+  if(f.only==="opp") r=r.filter(o=>o.score>=75);
+  if(f.only==="full") r=r.filter(o=>o.covered>=o.qty);
+  if(f.q){const q=f.q.toLowerCase();r=r.filter(o=>(o.brand+o.supplier+o.search+o.region).toLowerCase().includes(q));}
+  const k=S.sort.k,d=S.sort.d;
+  r.sort((a,b)=>(typeof a[k]==="string"?a[k].localeCompare(b[k]):a[k]-b[k])*d);
+  return r;
+}
+function vRes(){
+  const r=filtered(), s=S.activeSearch?S.searches.find(x=>x.id===S.activeSearch):null;
+  const best=r.length?r.reduce((a,b)=>a.price<b.price?a:b):null;
+  const avg=r.length?r.reduce((a,o)=>a+o.price,0)/r.length:0;
+  return `<div class="view">
+  <div class="top">
+    <div><h2>Resultados y comparación</h2>
+      <p>${s?`Búsqueda: <b>${s.name}</b>`:"Todas las búsquedas"} · ${r.length} cotizaciones normalizadas</p></div>
+    <div class="spacer"></div>
+    ${S.activeSearch?`<button class="btn gho" onclick="S.activeSearch=null;render()">✕ Quitar filtro</button>`:""}
+    <button class="btn gho" onclick="exportCSV()" ${T("Exportar","Descarga las filas visibles en CSV para pegarlas en el ERP o circular la comparativa por mail.")}>⤓ CSV</button>
+    <button class="btn ${S.compare.size?'pri':''}" onclick="openCompare()" ${T("Comparar","Tildá hasta 4 ofertas y el agente arma la comparativa lado a lado con una recomendación argumentada.")}>⧉ Comparar (${S.compare.size})</button>
+    <button class="btn pri" onclick="runAgent(true)">▶ Refrescar</button>
+  </div>
+
+  ${r.length?`<div class="kpis">
+    <div class="kpi" ${T("Mejor precio","La cotización más baja del conjunto filtrado, ya normalizada a unidad y moneda comunes.")}>
+      <div class="lb">Mejor precio</div><div class="vl up">${money(best.price,dec(best.unit))}</div>
+      <div class="dt">${best.brand} · ${best.supplier}</div></div>
+    <div class="kpi" ${T("Promedio de mercado","Media de las cotizaciones capturadas. La dispersión entre extremos muestra cuánto valor deja sobre la mesa quien compra a la primera fuente que consulta.")}>
+      <div class="lb">Promedio mercado</div><div class="vl">${money(avg,2)}</div>
+      <div class="dt">Dispersión ${((Math.max(...r.map(o=>o.price))/Math.min(...r.map(o=>o.price))-1)*100).toFixed(0)}% extremo a extremo</div></div>
+    <div class="kpi" ${T(DEF.saving[0],DEF.saving[1])}>
+      <div class="lb">Ahorro mejor opción</div><div class="vl up">${usd(best.saving)}</div>
+      <div class="dt">Cubre ${(best.covered/best.qty*100).toFixed(0)}% del volumen</div></div>
+    <div class="kpi" ${T("Cumplen objetivo","Cuántas de las ofertas visibles quedan por debajo del precio objetivo fijado por Compras.")}>
+      <div class="lb">Cumplen objetivo</div><div class="vl">${r.filter(o=>o.price<=o.target).length} / ${r.length}</div>
+      <div class="dt">Filtro automático del agente</div></div>
+  </div>`:""}
+
+  <div class="card" style="flex:1;min-height:0">
+    <header><div class="flt">
+      <input placeholder="Buscar marca, proveedor…" value="${S.filters.q}" oninput="S.filters.q=this.value;render();document.querySelector('.flt input').focus()" style="width:180px">
+      <select onchange="S.filters.crit=this.value;render()" ${D('crit')}>
+        <option value="">Criticidad</option>${["Crítico","Alta","Media","Baja"].map(c=>`<option ${S.filters.crit===c?'selected':''}>${c}</option>`).join("")}</select>
+      <select onchange="S.filters.region=this.value;render()" ${T("Región","Filtra por zona de entrega. La logística puede anular la ventaja de precio de una oferta lejana.")}>
+        <option value="">Región</option>${REGIONS.map(c=>`<option ${S.filters.region===c?'selected':''}>${c}</option>`).join("")}</select>
+      <select onchange="S.filters.only=this.value;render()" ${T("Filtro rápido","Atajos de decisión: quedarse solo con lo accionable, con lo que entra en presupuesto o con lo que cubre el volumen completo.")}>
+        <option value="">Todas las ofertas</option>
+        <option value="opp" ${S.filters.only==="opp"?'selected':''}>Score ≥ 75</option>
+        <option value="tgt" ${S.filters.only==="tgt"?'selected':''}>≤ objetivo</option>
+        <option value="full" ${S.filters.only==="full"?'selected':''}>Volumen completo</option></select>
+      <select onchange="S.activeSearch=this.value?+this.value:null;render()">
+        <option value="">Todas las búsquedas</option>
+        ${S.searches.map(x=>`<option value="${x.id}" ${S.activeSearch===x.id?'selected':''}>${x.name.slice(0,34)}</option>`).join("")}</select>
+    </div></header>
+    <div class="tw"><table>
+      <thead><tr>
+        <th style="width:26px" ${T("Selección","Marcá hasta 4 ofertas para abrir la comparativa lado a lado.")}></th>
+        <th class="srt" onclick="sortBy('score')" ${D('score')}>Score ${ar('score')}</th>
+        <th ${D('brand')}>Marca / proveedor</th>
+        <th>Insumo</th>
+        <th class="srt num" onclick="sortBy('price')" ${D('price')}>Precio ${ar('price')}</th>
+        <th class="srt num" onclick="sortBy('vsMkt')" ${T("Δ mercado / Δ objetivo","Arriba: diferencia contra el precio de referencia del mercado. Abajo: contra el precio objetivo interno. Ambos negativos = la oferta es barata y además entra en presupuesto.")}>Δ mkt / obj ${ar('vsMkt')}</th>
+        <th ${D('trend')}>Tendencia</th>
+        <th class="num" ${D('stock')}>Stock</th>
+        <th ${D('pay')}>Condiciones</th>
+        <th class="srt num" onclick="sortBy('saving')" ${D('saving')}>Ahorro ${ar('saving')}</th>
+        <th></th></tr></thead>
+      <tbody>${r.map(o=>`
+        <tr class="${S.compare.has(o.id)?'sel':''}">
+          <td><input type="checkbox" ${S.compare.has(o.id)?'checked':''} onclick="event.stopPropagation();togCmp(${o.id})"></td>
+          <td>${scoreCell(o.score)}</td>
+          <td>${brandBadge(o.brand,o.supplier)}</td>
+          <td><div class="trunc">${o.search}</div><div class="mini">${critChip(o.crit)} ${o.region}</div></td>
+          <td class="num"><b>${money(o.price,dec(o.unit))}</b><div class="mini">${o.unit}</div></td>
+          <td class="num"><span class="delta ${o.vsMkt<0?'up':'down'}">${o.vsMkt>0?'+':''}${o.vsMkt.toFixed(1)}%</span>
+            <div class="mini ${o.vsTgt<=0?'up':'warn'}">${o.vsTgt>0?'+':''}${o.vsTgt.toFixed(1)}% obj</div></td>
+          <td>${spark(o.hist)}<div class="mini ${o.trend<0?'up':'down'}">${o.trend>0?'+':''}${o.trend.toFixed(1)}%</div></td>
+          <td class="num">${(o.covered/o.qty*100).toFixed(0)}%<div class="mini">${o.stock.toLocaleString('es-AR')}</div></td>
+          <td><span class="chip ${/Canje|Prefin/.test(o.pay)?'c-media':'c-baja'}">${o.pay}</span><div class="mini">${o.delivery} días</div></td>
+          <td class="num"><b class="up">${o.saving>0?usd(o.saving):'—'}</b></td>
+          <td><button class="btn sm gho" onclick="detail(${o.id})">Ver</button></td>
+        </tr>`).join("")||`<tr><td colspan="11"><div class="empty">Sin resultados con estos filtros.</div></td></tr>`}
+      </tbody></table></div>
+  </div></div>`;
+}
+const ar=k=>S.sort.k===k?(S.sort.d>0?"▲":"▼"):"";
+function sortBy(k){S.sort={k,d:S.sort.k===k?-S.sort.d:-1};render();}
+function togCmp(id){S.compare.has(id)?S.compare.delete(id):(S.compare.size<4&&S.compare.add(id));render();}
+
+/* ---------- 7.3 OPORTUNIDADES ---------- */
+function vOpps(){
+  const o=opportunities().sort((a,b)=>b.saving-a.saving);
+  const tot=o.reduce((a,x)=>a+x.saving,0);
+  return `<div class="view">
+  <div class="top"><div><h2>Oportunidades de compra</h2>
+    <p>Ofertas accionables hoy — precio, cobertura, condiciones y logística ponderadas</p></div>
+    <div class="spacer"></div><button class="btn pri" onclick="runAgent(true)">▶ Buscar más</button></div>
+  <div class="kpis">
+    <div class="kpi" ${T("Ahorro accionable","Beneficio total si Compras ejecuta hoy todas las oportunidades vigentes.")}>
+      <div class="lb">Ahorro accionable</div><div class="vl up">${usd(tot)}</div>
+      <div class="dt">≈ ARS ${(tot*S.fx/1e6).toFixed(1)} M al FX ${S.fx}</div></div>
+    <div class="kpi" ${T("Ventana de oportunidad","Tiempo medio que estas ofertas permanecen publicadas antes de agotarse o corregir precio. Es el argumento central del monitoreo continuo: sin agente, la mayoría se pierde.")}>
+      <div class="lb">Ventana estimada</div><div class="vl warn">36 h</div>
+      <div class="dt">Vida media histórica de estas ofertas</div></div>
+    <div class="kpi" ${T("Oportunidades vigentes","Ofertas con score ≥75 todavía disponibles, y cuántas corresponden a insumos críticos.")}>
+      <div class="lb">Vigentes</div><div class="vl">${o.length}</div>
+      <div class="dt">${o.filter(x=>x.crit==="Crítico").length} sobre insumos críticos</div></div>
+  </div>
+  <div class="cards">
+    ${o.map(x=>`<div class="card">
+      <header>${brandBadge(x.brand,x.supplier)}<div class="spacer"></div>${scoreCell(x.score)}</header>
+      <div style="padding:11px 13px">
+        <div style="font-weight:600;margin-bottom:2px" class="trunc">${x.search}</div>
+        <div class="mini" style="margin-bottom:9px">${x.region} · entrega ${x.delivery} d · ${x.pay}</div>
+        ${lineChart(x.hist,420,92)}
+        <dl class="kv" style="margin-top:10px">
+          <dt ${D('price')}>Ofertado</dt><dd>${money(x.price,dec(x.unit))} ${x.unit}</dd>
+          <dt ${T("Referencia","Precio de mercado del insumo según el índice del agente.")}>Referencia</dt><dd>${money(x.base,dec(x.unit))}</dd>
+          <dt ${D('vsMkt')}>Diferencia</dt><dd class="up">${x.vsMkt.toFixed(1)}%</dd>
+          <dt ${D('stock')}>Cobertura</dt><dd>${(x.covered/x.qty*100).toFixed(0)}%</dd>
+          <dt ${D('saving')} style="color:var(--acc)">Ahorro</dt><dd class="up" style="font-size:15px">${usd(x.saving)}</dd>
+        </dl>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button class="btn sm gho" style="flex:1" onclick="detail(${x.id})">Analizar</button>
+          <button class="btn sm pri" style="flex:1" onclick="reserve(${x.id})" ${T("Reservar lote","Bloquea el volumen al precio detectado y genera una orden de compra preliminar para aprobación. En producción dispara el flujo del ERP.")}>Reservar</button>
+        </div></div></div>`).join("")||`<div class="empty">Todavía no hay oportunidades. Ejecutá un barrido.</div>`}
+  </div></div>`;
+}
+function reserve(id){
+  const o=S.results.find(x=>x.id===id);
+  log(`<b style="color:var(--acc)">Lote reservado</b> <span>— ${o.brand} vía ${o.supplier}: ${o.covered.toLocaleString('es-AR')} ${o.unit.split("/")[1]} · OC preliminar generada</span>`,"hit");
+  toast(`Lote reservado · ahorro ${usd(o.saving)}`);
+}
+
+/* ---------- 7.4 CONFIGURACIÓN ---------- */
+function vCfg(){
+  const a=S.agent;
+  return `<div class="view">
+  <div class="top"><div><h2>Configuración del agente</h2>
+    <p>Cadencia, sensibilidad, canales, alertas y umbrales — todo parametrizable</p></div></div>
+  <div class="cfgwrap">
+    <div class="card"><header><h3>Comportamiento</h3></header><div>
+      <div class="g2">
+        <div class="fld"><label ${T("Frecuencia de barrido","Cada cuántos minutos el agente recorre todas las fuentes. Más frecuente = menos ventanas perdidas, más carga sobre los sitios origen.")}>Frecuencia (min) ⓘ</label>
+          <input type="number" min="1" value="${a.freq}" onchange="S.agent.freq=+this.value;toast('Cadencia: '+this.value+' min')"></div>
+        <div class="fld"><label ${T("Fuentes monitoreadas","Cantidad de sitios en el barrido: marketplaces, distribuidores, cooperativas, licitaciones y listas de precios.")}>Fuentes ⓘ</label>
+          <input type="number" min="1" value="${a.sources}" onchange="S.agent.sources=+this.value;syncAgentUI()"></div>
+      </div>
+      <div class="fld"><label id="senL" ${T("Sensibilidad","Qué tan agresivo es el agente al marcar un desvío como oportunidad. Alta = más señales y más ruido; baja = solo desvíos muy marcados.")}>Sensibilidad — ${a.sensitivity}/10 ⓘ</label>
+        <input type="range" min="1" max="10" value="${a.sensitivity}" oninput="S.agent.sensitivity=+this.value;document.getElementById('senL').firstChild.textContent='Sensibilidad — '+this.value+'/10 '"></div>
+      <div class="g2">
+        <div class="fld"><label ${T("Umbral de alerta","Diferencia mínima contra el mercado para que el agente notifique. Evita saturar a Compras con desvíos triviales.")}>Ahorro mín. alerta (%) ⓘ</label>
+          <input type="number" min="1" max="50" value="${a.minSaving}" onchange="S.agent.minSaving=+this.value"></div>
+        <div class="fld"><label ${T("Tipo de cambio","FX usado para expresar los ahorros en pesos en tablero y reportes.")}>FX ARS/USD ⓘ</label>
+          <input type="number" value="${S.fx}" onchange="S.fx=+this.value;toast('FX actualizado')"></div>
+      </div>
+      <div class="fld"><label ${T("Canales de notificación","Por dónde llega la alerta cuando aparece una oportunidad. El webhook y la integración ERP permiten disparar la orden de compra sin intervención manual.")}>Notificaciones ⓘ</label>
+        <div class="tog">${["WhatsApp","Email","Slack","ERP / SAP","Webhook"].map((c,i)=>
+          `<label class="${i<2?'on':''}" onclick="this.classList.toggle('on')"><input type="checkbox">${c}</label>`).join("")}</div></div>
+      <div class="fld"><label>Alertas automáticas</label>
+        <div class="tog"><label class="${a.autoAlert?'on':''}" onclick="S.agent.autoAlert=!S.agent.autoAlert;this.classList.toggle('on')"
+          ${T("Alertas en tiempo real","Con esto activo el agente notifica en el momento de la detección, sin esperar a que alguien abra el tablero.")}>
+          <input type="checkbox">Notificar oportunidades al detectarlas</label></div></div>
+    </div></div>
+
+    <div class="card"><header><h3>Fuentes y cobertura</h3></header><div>
+      <div class="fld"><label ${T("Canales de scraping","Tipos de fuente que el agente recorre. Cada canal tiene su parser: ficha de marketplace, lista PDF de distribuidor, pliego de licitación, mensaje de grupo.")}>Canales ⓘ</label>
+        <div class="tog">${["Marketplaces","Distribuidores","Cooperativas","Licitaciones","Grupos WhatsApp","Bolsas de cereales","Importadores"].map((c,i)=>
+          `<label class="${i<4?'on':''}" onclick="this.classList.toggle('on')"><input type="checkbox">${c}</label>`).join("")}</div></div>
+      <div class="fld"><label ${T("Catálogo maestro de marcas","Fabricantes habilitados. Sirve para que el agente reconozca equivalencias de producto entre fuentes que nombran el mismo insumo distinto.")}>Marcas ⓘ</label>
+        <div class="tog">${Object.keys(BRANDS).map(b=>
+          `<label class="on" onclick="this.classList.toggle('on')"><input type="checkbox"><span style="background:${BRANDS[b].c};width:14px;height:14px;border-radius:4px;display:inline-grid;place-items:center;font-size:7px;color:#fff;font-weight:800">${BRANDS[b].i}</span>${b}</label>`).join("")}</div></div>
+      <div class="fld"><label ${T("Regiones de entrega","Zonas donde la empresa recibe mercadería. El agente descarta ofertas cuyo flete las vuelve inconvenientes.")}>Regiones ⓘ</label>
+        <div class="tog">${REGIONS.map((c,i)=>`<label class="${i<4?'on':''}" onclick="this.classList.toggle('on')"><input type="checkbox">${c}</label>`).join("")}</div></div>
+      <p class="hint">El agente normaliza unidades (L, kg, tn, dosis), moneda y condiciones de pago antes de comparar, de modo que precios de fuentes heterogéneas resulten equivalentes.</p>
+    </div></div>
+  </div></div>`;
+}
+
+/* =====================================================================
+   8. MODALES
+   ===================================================================== */
+const layer=()=>document.getElementById("layer");
+const closeLayer=()=>{layer().innerHTML="";TIP.classList.remove("on");};
+
+function editSearch(id){
+  const s=id?S.searches.find(x=>x.id===id):{id:null,name:"",cat:"Herbicida",brands:[],crit:"Alta",
+    unit:"USD/L",target:0,qty:1000,regions:[],freq:"1 h",channels:["Marketplaces"],base:0};
+  layer().innerHTML=`<div class="ov" onclick="if(event.target===this)closeLayer()"><div class="mo">
+    <header><h3>${id?"Editar búsqueda":"Nueva búsqueda de insumo"}</h3><button class="x" onclick="closeLayer()">✕</button></header>
+    <div class="body">
+      <div class="fld"><label ${T("Nombre","Identifica la búsqueda en tablero, alertas y reportes. Conviene incluir concentración y destino de uso.")}>Nombre ⓘ</label>
+        <input id="f_name" value="${s.name}" placeholder="Ej: Glifosato 62% SL — reposición campaña"></div>
+      <div class="g3">
+        <div class="fld"><label>Categoría</label><select id="f_cat">${["Herbicida","Fungicida","Insecticida","Fertilizante","Inoculante","Semilla","Combustible","Repuestos"].map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join("")}</select></div>
+        <div class="fld"><label ${T(DEF.crit[0],DEF.crit[1])}>Criticidad ⓘ</label><select id="f_crit">${["Crítico","Alta","Media","Baja"].map(c=>`<option ${s.crit===c?'selected':''}>${c}</option>`).join("")}</select></div>
+        <div class="fld"><label ${T("Unidad de comparación","Unidad a la que se normaliza todo. Es lo que permite comparar un bidón de 20 L con un IBC de 1000 L.")}>Unidad ⓘ</label><select id="f_unit">${["USD/L","USD/tn","USD/kg","USD/dosis"].map(c=>`<option ${s.unit===c?'selected':''}>${c}</option>`).join("")}</select></div>
+      </div>
+      <div class="g3">
+        <div class="fld"><label ${T("Precio objetivo","Techo presupuestario. Por debajo de este valor el agente considera que la compra es aprobable.")}>Objetivo ⓘ</label><input id="f_target" type="number" step="0.01" value="${s.target}"></div>
+        <div class="fld"><label ${T("Precio de referencia","Precio de mercado actual del insumo. Es la base contra la que se calculan el Δ y el ahorro.")}>Referencia mercado ⓘ</label><input id="f_base" type="number" step="0.01" value="${s.base}"></div>
+        <div class="fld"><label ${T("Volumen","Cantidad total a comprar en la campaña. Multiplica el ahorro unitario.")}>Volumen ⓘ</label><input id="f_qty" type="number" value="${s.qty}"></div>
+      </div>
+      <div class="fld"><label>Marcas objetivo</label>
+        <div class="tog" id="f_brands">${Object.keys(BRANDS).map(b=>
+          `<label class="${s.brands.includes(b)?'on':''}" data-v="${b}" onclick="this.classList.toggle('on')">
+            <span style="background:${BRANDS[b].c};width:15px;height:15px;border-radius:4px;display:inline-grid;place-items:center;font-size:7px;color:#fff;font-weight:800">${BRANDS[b].i}</span>${b}</label>`).join("")}</div></div>
+      <div class="fld"><label>Regiones de entrega</label>
+        <div class="tog" id="f_regions">${REGIONS.map(r=>`<label class="${s.regions.includes(r)?'on':''}" data-v="${r}" onclick="this.classList.toggle('on')">${r}</label>`).join("")}</div></div>
+      <div class="g2">
+        <div class="fld"><label ${T("Frecuencia","Cadencia de revisión de esta búsqueda en particular; puede ser más agresiva que la global para insumos críticos.")}>Frecuencia ⓘ</label><select id="f_freq">${["5 min","15 min","30 min","1 h","6 h","Diaria"].map(c=>`<option ${s.freq===c?'selected':''}>${c}</option>`).join("")}</select></div>
+        <div class="fld"><label>Canales</label>
+          <div class="tog" id="f_ch">${["Marketplaces","Distribuidores","Cooperativas","Licitaciones"].map(c=>
+            `<label class="${s.channels.includes(c)?'on':''}" data-v="${c}" onclick="this.classList.toggle('on')">${c}</label>`).join("")}</div></div>
+      </div>
+    </div>
+    <footer>${id?`<button class="btn gho" style="margin-right:auto;color:var(--red)" onclick="delSearch(${id})">Eliminar</button>`:""}
+      <button class="btn gho" onclick="closeLayer()">Cancelar</button>
+      <button class="btn pri" onclick="saveSearch(${id})">${id?"Guardar":"Crear y activar"}</button></footer>
+  </div></div>`;
+}
+const picked=sel=>[...document.querySelectorAll(`#${sel} label.on`)].map(l=>l.dataset.v);
+function saveSearch(id){
+  const g=x=>document.getElementById("f_"+x).value;
+  const o={on:true,name:g("name")||"Búsqueda sin nombre",cat:g("cat"),crit:g("crit"),unit:g("unit"),
+    target:+g("target")||0,base:+g("base")||(+g("target")*1.12)||1,qty:+g("qty")||1,
+    brands:picked("f_brands"),regions:picked("f_regions"),freq:g("freq"),channels:picked("f_ch")};
+  if(!o.brands.length) o.brands=["Bayer","Syngenta"];
+  if(!o.regions.length) o.regions=["Buenos Aires"];
+  if(id){Object.assign(S.searches.find(x=>x.id===id),o);toast("Búsqueda actualizada");}
+  else{o.id=++seq;S.searches.push(o);toast("Búsqueda creada y activada");
+    log(`<b>Nueva búsqueda</b> <span>— "${o.name}" · objetivo ${money(o.target)} ${o.unit}</span>`);}
+  closeLayer();render();
+}
+function delSearch(id){S.searches=S.searches.filter(x=>x.id!==id);S.results=S.results.filter(r=>r.sid!==id);
+  closeLayer();render();toast("Búsqueda eliminada");}
+function toggleSearch(id){const s=S.searches.find(x=>x.id===id);s.on=!s.on;
+  log(`Búsqueda <b>${s.name}</b> <span>${s.on?"reactivada":"pausada"}</span>`);render();}
+function goSearch(id){S.activeSearch=id;nav("res");}
+
+function openFx(){
+  layer().innerHTML=`<div class="ov" onclick="if(event.target===this)closeLayer()"><div class="mo" style="width:min(390px,100%)">
+    <header><h3>Parámetros de valorización</h3><button class="x" onclick="closeLayer()">✕</button></header>
+    <div class="body"><div class="fld"><label>Tipo de cambio ARS / USD</label><input id="fx" type="number" value="${S.fx}"></div>
+      <p class="hint">Se usa para expresar los ahorros en pesos en el tablero y en los reportes.</p></div>
+    <footer><button class="btn gho" onclick="closeLayer()">Cancelar</button>
+      <button class="btn pri" onclick="S.fx=+document.getElementById('fx').value;closeLayer();render();toast('FX actualizado')">Aplicar</button></footer>
+  </div></div>`;
+}
+
+/* ---------- DRAWER ---------- */
+function detail(id){
+  const o=S.results.find(x=>x.id===id);
+  const alt=S.results.filter(x=>x.sid===o.sid&&x.id!==o.id).sort((a,b)=>a.price-b.price).slice(0,4);
+  layer().innerHTML=`<div class="ov" style="place-items:stretch;justify-content:flex-end;padding:0" onclick="if(event.target===this)closeLayer()">
+    <div class="dr">
+      <header>${brandBadge(o.brand,o.supplier)}<div class="spacer"></div>${scoreCell(o.score)}<button class="x" onclick="closeLayer()">✕</button></header>
+      <div class="body">
+        <div style="font-size:14.5px;font-weight:650">${o.search}</div>
+        <div class="mini" style="margin-bottom:9px">${o.cat} · ${o.region} · capturado ${o.ts.toTimeString().slice(0,5)}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+          ${o.flags.map(f=>`<span class="chip ${f.c}" ${T(f.t,{"Precio outlier":"Se aparta más de 14% del precio de referencia: es una anomalía de mercado, no una variación normal.","Cumple objetivo":"Queda por debajo del techo presupuestario fijado por Compras.","Stock parcial":"No alcanza a cubrir el volumen requerido; habría que complementar con otro proveedor.","Canje granos":"Se paga con producción, lo que libera capital de trabajo.","Entrega lenta":"El plazo logístico puede comprometer la ventana de aplicación."}[f.t]||"")}>${f.t}</span>`).join("")}${critChip(o.crit)}</div>
+
+        <div class="card" style="margin-bottom:12px"><header><h3>Serie de precios (12 capturas)</h3></header>
+          <div style="padding:10px">${lineChart(o.hist,500,130)}</div></div>
+
+        <div class="card" style="margin-bottom:12px"><header><h3>Impacto económico</h3></header><div style="padding:12px 14px">
+          <dl class="kv">
+            <dt ${D('price')}>Precio ofertado</dt><dd>${money(o.price,dec(o.unit))} ${o.unit}</dd>
+            <dt>Referencia de mercado</dt><dd>${money(o.base,dec(o.unit))}</dd>
+            <dt>Objetivo interno</dt><dd>${money(o.target,dec(o.unit))}</dd>
+            <dt ${D('vsMkt')}>Δ vs mercado</dt><dd class="${o.vsMkt<0?'up':'down'}">${o.vsMkt.toFixed(1)}%</dd>
+            <dt ${D('stock')}>Volumen a asegurar</dt><dd>${o.covered.toLocaleString('es-AR')} / ${o.qty.toLocaleString('es-AR')}</dd>
+            <dt ${D('pay')}>Condición de pago</dt><dd>${o.pay}</dd>
+            <dt>Plazo de entrega</dt><dd>${o.delivery} días</dd>
+            <dt ${D('saving')} style="color:var(--acc)">Ahorro estimado</dt><dd class="up" style="font-size:16px">${usd(o.saving)}</dd>
+            <dt class="mini">En pesos</dt><dd class="mini">ARS ${(o.saving*S.fx).toLocaleString('es-AR',{maximumFractionDigits:0})}</dd>
+          </dl></div></div>
+
+        <div class="card" style="margin-bottom:12px"><header><h3>Alternativas para el mismo insumo</h3></header>
+          <div class="tw"><table><thead><tr><th>Marca</th><th class="num">Precio</th><th class="num">Δ</th><th>Pago</th></tr></thead>
+          <tbody>${alt.map(a=>`<tr onclick="detail(${a.id})" style="cursor:pointer"><td>${brandBadge(a.brand,a.supplier)}</td>
+            <td class="num">${money(a.price,dec(a.unit))}</td><td class="num delta ${a.price>o.price?'down':'up'}">${((a.price/o.price-1)*100).toFixed(1)}%</td>
+            <td class="mini">${a.pay}</td></tr>`).join("")||`<tr><td colspan="4"><div class="empty">Sin alternativas aún.</div></td></tr>`}</tbody></table></div></div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn gho" style="flex:1" onclick="togCmp(${o.id});closeLayer()">⧉ A comparación</button>
+          <button class="btn pri" style="flex:1" onclick="reserve(${o.id});closeLayer()">Reservar lote</button>
+        </div>
+      </div></div></div>`;
+}
+
+/* ---------- COMPARADOR ---------- */
+function openCompare(){
+  const items=[...S.compare].map(id=>S.results.find(r=>r.id===id)).filter(Boolean);
+  if(!items.length){toast("Seleccioná ofertas con el casillero para comparar");return;}
+  const best=items.reduce((a,b)=>a.score>b.score?a:b);
+  const rows=[
+    ["Precio","price",o=>`<b>${money(o.price,dec(o.unit))}</b> <span class="mini">${o.unit}</span>`],
+    ["Δ vs mercado","vsMkt",o=>`<span class="delta ${o.vsMkt<0?'up':'down'}">${o.vsMkt>0?'+':''}${o.vsMkt.toFixed(1)}%</span>`],
+    ["Δ vs objetivo","vsTgt",o=>`<span class="delta ${o.vsTgt<=0?'up':'warn'}">${o.vsTgt>0?'+':''}${o.vsTgt.toFixed(1)}%</span>`],
+    ["Score IA","score",o=>scoreCell(o.score)],
+    ["Cobertura","stock",o=>`${(o.covered/o.qty*100).toFixed(0)}% <span class="mini">(${o.stock.toLocaleString('es-AR')})</span>`],
+    ["Condiciones","pay",o=>`${o.pay} <span class="mini">· ${o.delivery} d</span>`],
+    ["Tendencia","trend",o=>spark(o.hist,60,17)],
+    ["Ahorro","saving",o=>`<b class="up">${usd(o.saving)}</b>`],
+  ];
+  layer().innerHTML=`<div class="ov" onclick="if(event.target===this)closeLayer()"><div class="mo" style="width:min(880px,100%)">
+    <header><h3>Comparación de ofertas</h3><span class="sub">${items.length} seleccionadas</span><button class="x" onclick="closeLayer()">✕</button></header>
+    <div class="body" style="padding:0">
+      <div class="tw"><table>
+        <thead><tr><th></th>${items.map(o=>`<th>${brandBadge(o.brand,o.supplier)}</th>`).join("")}</tr></thead>
+        <tbody>${rows.map(([k,d,f])=>`<tr><td class="mini" style="white-space:nowrap" ${DEF[d]?D(d):""}>${k}</td>
+          ${items.map(o=>`<td>${f(o)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <div style="padding:13px 16px">
+        <div class="opp" style="cursor:default"><h4>Recomendación del agente</h4>
+          <p><b>${best.brand}</b> vía ${best.supplier} a ${money(best.price,dec(best.unit))} ${best.unit}: mejor precio ajustado por
+          condiciones de pago (${best.pay}), cubre el ${(best.covered/best.qty*100).toFixed(0)}% del volumen y entrega en ${best.delivery} días.
+          Ahorro estimado <b class="up">${usd(best.saving)}</b>.</p></div>
+      </div></div>
+    <footer><button class="btn gho" onclick="S.compare.clear();closeLayer();render()">Limpiar</button>
+      <button class="btn pri" onclick="reserve(${best.id});closeLayer()">Reservar la recomendada</button></footer>
+  </div></div>`;
+}
+
+/* ---------- EXPORT ---------- */
+function exportCSV(){
+  const r=filtered();
+  if(!r.length){toast("Nada para exportar");return;}
+  const h=["Score","Marca","Proveedor","Insumo","Criticidad","Region","Precio","Unidad","vsMercado%","vsObjetivo%","Stock","Pago","EntregaDias","AhorroUSD"];
+  const body=r.map(o=>[o.score,o.brand,o.supplier,o.search,o.crit,o.region,o.price,o.unit,o.vsMkt.toFixed(1),o.vsTgt.toFixed(1),o.stock,o.pay,o.delivery,Math.round(o.saving)]
+    .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";"));
+  const blob=new Blob(["﻿"+[h.join(";"),...body].join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="agroscout_resultados.csv";a.click();URL.revokeObjectURL(a.href);
+  toast(`${r.length} filas exportadas`);
+}
+
+/* =====================================================================
+   9. BOOT
+   ===================================================================== */
+function nav(v){S.view=v;render();}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.v));
+S.searches.filter(s=>s.on).forEach(s=>{for(let i=0;i<5;i++) S.results.push(makeOffer(s));});
+S.agent.lastRun=new Date(Date.now()-6*60000); S.agent.scanned=S.agent.sources;
+log(`<b>Agente inicializado</b> <span>— ${Object.keys(BRANDS).length} marcas · ${S.agent.sources} fuentes conectadas</span>`);
+log(`Índice de referencia sincronizado <span>— Bolsa de Cereales + listas de distribuidores</span>`);
+opportunities().slice(0,2).forEach(o=>log(`<b style="color:var(--acc)">Oportunidad</b> <span>— ${o.brand} en ${o.supplier}: ${o.vsMkt.toFixed(1)}% vs mercado · ahorro ${usd(o.saving)}</span>`,"hit"));
+render();
+setInterval(()=>{if(!S.agent.running&&document.visibilityState==="visible") runAgent(false);},25000);
+</script>
+</body>
+</html>

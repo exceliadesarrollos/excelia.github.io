@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Transportes y Personas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF;
+    --bg:#F3F7FA;
+    --bg-deep:#EAF1F6;
+    --ink:#132433;
+    --ink-soft:#5B6B78;
+    --ink-faint:#8C99A5;
+    --blue-deep:#0A3D62;
+    --blue:#1C77C3;
+    --blue-mid:#2E8BD9;
+    --blue-soft:#E7F2FB;
+    --green:#1E9E6D;
+    --green-soft:#E4F7EF;
+    --yellow:#F4B400;
+    --yellow-soft:#FDF3D9;
+    --red:#C0392B;
+    --red-soft:#FBE7E4;
+    --border:#DCE6ED;
+    --shadow: 0 10px 34px rgba(10,61,98,0.10);
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #E9F2FB 0%, transparent 55%),
+      radial-gradient(1000px 550px at 100% 105%, #E7F7EE 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--ink);
+    min-height:100vh;
+    padding:26px 20px 50px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  
+  .dashboard{
+    max-width:1400px;margin:0 auto;background:var(--white);
+    border-radius:var(--radius-lg);box-shadow:var(--shadow);
+    display:flex;overflow:hidden;
+    border:1px solid var(--border);
+    min-height:900px;
+  }
+
+  /* SIDEBAR */
+  .sidebar{
+    width:222px;flex-shrink:0;
+    background:linear-gradient(185deg,var(--blue-deep),#0d4a76 60%,var(--blue));
+    color:#fff;padding:22px 16px 18px;display:flex;flex-direction:column;
+  }
+  .side-brand{display:flex;align-items:center;gap:9px;margin-bottom:26px;padding:0 4px;}
+  .side-brand .logo{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .side-brand .name{font-size:13.5px;font-weight:700;}
+  .side-brand .sub{font-size:9.5px;color:rgba(255,255,255,0.65);}
+  .side-nav{display:flex;flex-direction:column;gap:3px;}
+  .side-item{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:11px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,0.72);cursor:pointer;}
+  .side-item .ic{width:18px;text-align:center;font-size:14px;}
+  .side-item:hover{background:rgba(255,255,255,0.08);color:#fff;}
+  .side-item.active{background:rgba(255,255,255,0.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18);}
+
+  /* MAIN */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .topbar h1{font-size:18px;margin:0;}
+  .topbar .d{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .search-box{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:8px 12px;font-size:12px;color:var(--ink-soft);min-width:210px;}
+  .search-box input{border:none;background:none;outline:none;font-size:12px;width:100%;font-family:'Inter';color:var(--ink);}
+
+  .content{padding:22px 28px 34px;overflow-y:auto;}
+
+  /* TABS */
+  .tabs-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .tab-btn{padding:9px 15px;border-radius:11px;font-size:12px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:7px;}
+  .tab-btn .cnt{background:var(--white);border-radius:8px;padding:1px 7px;font-size:10.5px;font-family:'IBM Plex Mono';color:var(--ink-faint);}
+  .tab-btn.active{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff;}
+  .tab-btn.active .cnt{background:rgba(255,255,255,0.18);color:#fff;}
+
+  /* TABLE */
+  .table-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  table thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink-faint);font-weight:700;padding:13px 14px;background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  table td{padding:13px 14px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;}
+  table tbody tr:last-child td{border-bottom:none;}
+  table tbody tr:hover{background:#FAFCFE;cursor:pointer;}
+
+  /* STATUS SEMAFORO */
+  .status-dot{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:12px;}
+  .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+  .dot.verde{background:var(--green);}
+  .dot.amarillo{background:var(--yellow);}
+  .dot.rojo{background:var(--red);}
+  .status-label.verde{color:var(--green);}
+  .status-label.amarillo{color:#b9860a;}
+  .status-label.rojo{color:var(--red);}
+
+  /* CATEGORIAS Y TIPOS */
+  .cat-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:8px;}
+  .cat-chip.tractor{background:var(--blue-soft);color:var(--blue-deep);}
+  .cat-chip.semi{background:var(--blue-soft);color:var(--blue-deep);}
+  .cat-chip.bitren{background:var(--blue-soft);color:var(--blue-deep);}
+  .cat-chip.propio{background:var(--green-soft);color:var(--green);}
+  .cat-chip.autonomo{background:var(--yellow-soft);color:#b9860a;}
+  .cat-chip.fletero{background:var(--bg-deep);color:var(--ink-soft);}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(19,36,51,0.4);z-index:100;}
+  .modal-overlay.show{display:flex;align-items:center;justify-content:center;}
+  .modal{background:var(--white);border-radius:var(--radius-lg);padding:28px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow);}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .modal-head h2{margin:0;font-size:18px;}
+  .modal-close{background:none;border:none;font-size:22px;color:var(--ink-soft);cursor:pointer;padding:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
+  .modal-close:hover{color:var(--ink);}
+  .doc-item{background:var(--bg);padding:12px;border-radius:var(--radius-sm);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+  .doc-status{display:flex;align-items:center;gap:6px;font-weight:600;}
+  .doc-status .dot{width:8px;height:8px;}
+
+  /* LOCATION INFO */
+  .location-info{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);}
+  .location-info .ic{font-size:13px;}
+
+  /* TOOLTIPS */
+  .tooltip{position:relative;cursor:help;}
+  .tooltip::after{
+    content:attr(data-tip);
+    position:absolute;bottom:125%;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--white);padding:6px 10px;border-radius:6px;
+    font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:.2s;
+  }
+  .tooltip:hover::after{opacity:1;}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ink);color:var(--white);padding:12px 18px;border-radius:10px;font-size:12.5px;transition:.3s;z-index:200;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="side-brand">
+      <div class="logo">T</div>
+      <div>
+        <div class="name">TransportHub</div>
+        <div class="sub">v1.0</div>
+      </div>
+    </div>
+    <nav class="side-nav">
+      <div class="side-item active">
+        <span class="ic">📊</span>
+        <span>Gestión</span>
+      </div>
+      <div class="side-item" onclick="goTab('documentos')">
+        <span class="ic">📋</span>
+        <span>Documentos</span>
+      </div>
+      <div class="side-item" onclick="goTab('kpis')">
+        <span class="ic">📈</span>
+        <span>KPIs</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <h1>Gestión de Transportes y Personas</h1>
+        <div class="d">Seguimiento unificado de unidades y choferes</div>
+      </div>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar..." onkeyup="filterTable()">
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+      <!-- TABS -->
+      <div class="tabs-row">
+        <button class="tab-btn active" onclick="switchTab(this, 'unidades')">
+          <span>🚚 Unidades</span>
+          <span class="cnt" id="cnt-unidades">0</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab(this, 'choferes')">
+          <span>👤 Choferes</span>
+          <span class="cnt" id="cnt-choferes">0</span>
+        </button>
+      </div>
+
+      <!-- TABLA UNIDADES -->
+      <div id="tab-unidades" class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Patente</th>
+              <th>Estado</th>
+              <th>Categoría</th>
+              <th>Ubicación</th>
+              <th>Distancia</th>
+              <th>Documentación</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="unidades-tbody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TABLA CHOFERES -->
+      <div id="tab-choferes" class="table-card" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Estado</th>
+              <th>Tipo</th>
+              <th>DNI</th>
+              <th>Ubicación</th>
+              <th>Licencia</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="choferes-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE DETALLES -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalTitle"></h2>
+        <div id="modalSubtitle" style="font-size:12px;color:var(--ink-soft);margin-top:4px;"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastText"></span>
+</div>
+
+<script>
+  // DATOS SIMULADOS
+  const unidades = [
+    { 
+      patente: 'AA-100-AB', 
+      estado: 'verde', 
+      categoria: 'tractor', 
+      ubicacion: 'Ruta 9, km 45 (Rosario)', 
+      lat: -32.9468, lng: -60.6393,
+      distancia: 2.3, 
+      documentos: { vtv: 'vigente', rc: 'vigente', poliza: 'vence 15/09/2026' },
+      conductor: 'Juan Pérez'
+    },
+    { 
+      patente: 'AB-200-CD', 
+      estado: 'rojo', 
+      categoria: 'tractor+semi', 
+      ubicacion: 'Patio Principal', 
+      lat: -32.9500, lng: -60.6350,
+      distancia: 0.5, 
+      documentos: { vtv: 'vencida', rc: 'vigente', poliza: 'vigente' },
+      conductor: 'Carlos López'
+    },
+    { 
+      patente: 'AC-300-EF', 
+      estado: 'amarillo', 
+      categoria: 'bitren', 
+      ubicacion: 'Ruta 14, km 80 (Santa Fe)', 
+      lat: -31.6109, lng: -60.7091,
+      distancia: 65.8, 
+      documentos: { vtv: 'vence 30/10/2026', rc: 'vigente', poliza: 'vigente' },
+      conductor: 'Roberto Martínez'
+    },
+    { 
+      patente: 'AD-400-GH', 
+      estado: 'verde', 
+      categoria: 'tractor', 
+      ubicacion: 'Centro de Distribución', 
+      lat: -32.9480, lng: -60.6380,
+      distancia: 1.8, 
+      documentos: { vtv: 'vigente', rc: 'vigente', poliza: 'vigente' },
+      conductor: 'Miguel Fernández'
+    },
+    { 
+      patente: 'AE-500-IJ', 
+      estado: 'amarillo', 
+      categoria: 'tractor+semi', 
+      ubicacion: 'Ruta 33, zona norte', 
+      lat: -32.5000, lng: -60.5000,
+      distancia: 45.2, 
+      documentos: { vtv: 'vigente', rc: 'vence 20/09/2026', poliza: 'vigente' },
+      conductor: 'Santiago Rodríguez'
+    },
+  ];
+
+  const choferes = [
+    { 
+      nombre: 'Juan Pérez', 
+      estado: 'verde', 
+      tipo: 'propio', 
+      dni: '12.345.678',
+      licencia: 'Cat. D vigente',
+      ubicacion: 'Ruta 9, km 45',
+      lat: -32.9468, lng: -60.6393,
+      documentos: { dni: 'vigente', licencia: 'vigente', art: 'vigente', linti: 'vigente' }
+    },
+    { 
+      nombre: 'Carlos López', 
+      estado: 'rojo', 
+      tipo: 'autonomo', 
+      dni: '98.765.432',
+      licencia: 'Cat. D vencida',
+      ubicacion: 'Patio Principal',
+      lat: -32.9500, lng: -60.6350,
+      documentos: { dni: 'vigente', licencia: 'vencida', art: 'vigente', linti: 'vence 10/09/2026' }
+    },
+    { 
+      nombre: 'Roberto Martínez', 
+      estado: 'amarillo', 
+      tipo: 'fletero', 
+      dni: '45.678.901',
+      licencia: 'Cat. D vigente',
+      ubicacion: 'Ruta 14, km 80',
+      lat: -31.6109, lng: -60.7091,
+      documentos: { dni: 'vigente', licencia: 'vigente', art: 'vence 30/10/2026', linti: 'vigente' }
+    },
+  ];
+
+  function switchTab(btn, tabName) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    document.getElementById('tab-unidades').style.display = tabName === 'unidades' ? 'block' : 'none';
+    document.getElementById('tab-choferes').style.display = tabName === 'choferes' ? 'block' : 'none';
+  }
+
+  function renderUnidades() {
+    const tbody = document.getElementById('unidades-tbody');
+    document.getElementById('cnt-unidades').textContent = unidades.length;
+    
+    tbody.innerHTML = unidades.map(u => `
+      <tr onclick="openModal('unidad', '${u.patente}')">
+        <td><strong>${u.patente}</strong></td>
+        <td>
+          <span class="status-dot">
+            <span class="dot ${u.estado}"></span>
+            <span class="status-label ${u.estado}">
+              ${u.estado === 'verde' ? 'Disponible' : u.estado === 'amarillo' ? 'Disponible a plazo' : 'No disponible'}
+            </span>
+          </span>
+        </td>
+        <td><span class="cat-chip ${u.categoria}">${u.categoria.replace('+', ' + ').toUpperCase()}</span></td>
+        <td>
+          <div class="location-info">
+            <span class="ic">📍</span>
+            <span>${u.ubicacion}</span>
+          </div>
+        </td>
+        <td><strong>${u.distancia} km</strong></td>
+        <td>
+          <span class="tooltip" data-tip="Ver documentos">
+            📋 ${Object.values(u.documentos).filter(d => d === 'vigente').length}/${Object.values(u.documentos).length}
+          </span>
+        </td>
+        <td style="cursor:pointer;color:var(--blue-deep);font-weight:600;font-size:11px;">Ver →</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderChoferes() {
+    const tbody = document.getElementById('choferes-tbody');
+    document.getElementById('cnt-choferes').textContent = choferes.length;
+    
+    tbody.innerHTML = choferes.map(c => `
+      <tr onclick="openModal('chofer', '${c.dni}')">
+        <td><strong>${c.nombre}</strong></td>
+        <td>
+          <span class="status-dot">
+            <span class="dot ${c.estado}"></span>
+            <span class="status-label ${c.estado}">
+              ${c.estado === 'verde' ? 'Habilitado' : c.estado === 'amarillo' ? 'Próximo a vencer' : 'No habilitado'}
+            </span>
+          </span>
+        </td>
+        <td><span class="cat-chip ${c.tipo}">${c.tipo === 'propio' ? 'PROPIO' : c.tipo === 'autonomo' ? 'AUTÓNOMO' : 'FLETERO'}</span></td>
+        <td>${c.dni}</td>
+        <td>
+          <div class="location-info">
+            <span class="ic">📍</span>
+            <span>${c.ubicacion}</span>
+          </div>
+        </td>
+        <td><strong>${c.licencia}</strong></td>
+        <td style="cursor:pointer;color:var(--blue-deep);font-weight:600;font-size:11px;">Ver →</td>
+      </tr>
+    `).join('');
+  }
+
+  function openModal(tipo, id) {
+    const overlay = document.getElementById('modalOverlay');
+    const contentDiv = document.getElementById('modalContent');
+    
+    if (tipo === 'unidad') {
+      const u = unidades.find(x => x.patente === id);
+      document.getElementById('modalTitle').textContent = `Unidad ${u.patente}`;
+      document.getElementById('modalSubtitle').textContent = `Conductor: ${u.conductor}`;
+      
+      contentDiv.innerHTML = `
+        <div style="margin-bottom:16px;">
+          <strong style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;">Información General</strong>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="doc-item">
+              <span>Categoría:</span>
+              <span class="cat-chip ${u.categoria}">${u.categoria.toUpperCase()}</span>
+            </div>
+            <div class="doc-item">
+              <span>Ubicación:</span>
+              <span>${u.ubicacion}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <strong style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;">Documentación</strong>
+          ${Object.entries(u.documentos).map(([doc, status]) => `
+            <div class="doc-item">
+              <span>${doc.toUpperCase()}</span>
+              <span class="doc-status">
+                <span class="dot ${status === 'vigente' ? 'verde' : status.includes('vence') ? 'amarillo' : 'rojo'}"></span>
+                <span>${status}</span>
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      const c = choferes.find(x => x.dni === id);
+      document.getElementById('modalTitle').textContent = c.nombre;
+      document.getElementById('modalSubtitle').textContent = `DNI: ${c.dni} | ${c.tipo === 'propio' ? 'Empleado' : c.tipo === 'autonomo' ? 'Autónomo' : 'Fletero'}`;
+      
+      contentDiv.innerHTML = `
+        <div style="margin-bottom:16px;">
+          <strong style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;">Datos Personales</strong>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="doc-item">
+              <span>Licencia:</span>
+              <span>${c.licencia}</span>
+            </div>
+            <div class="doc-item">
+              <span>Ubicación:</span>
+              <span>${c.ubicacion}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <strong style="font-size:12px;color:var(--ink-soft);text-transform:uppercase;">Documentación Requerida</strong>
+          ${Object.entries(c.documentos).map(([doc, status]) => `
+            <div class="doc-item">
+              <span>${doc.toUpperCase()}</span>
+              <span class="doc-status">
+                <span class="dot ${status === 'vigente' ? 'verde' : status.includes('vence') ? 'amarillo' : 'rojo'}"></span>
+                <span>${status}</span>
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    overlay.classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  function filterTable() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+
+  // INIT
+  renderUnidades();
+  renderChoferes();
+</script>
+
+</body>
+</html>

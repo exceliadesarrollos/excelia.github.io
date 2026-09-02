@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Gestión · Mandos Medios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF;
+    --bg:#F3F7FA;
+    --bg-deep:#EAF1F6;
+    --ink:#132433;
+    --ink-soft:#5B6B78;
+    --ink-faint:#8C99A5;
+    --blue-deep:#0A3D62;
+    --blue:#1C77C3;
+    --blue-mid:#2E8BD9;
+    --blue-soft:#E7F2FB;
+    --green:#1E9E6D;
+    --green-soft:#E4F7EF;
+    --yellow:#F4B400;
+    --yellow-soft:#FDF3D9;
+    --red:#C0392B;
+    --red-soft:#FBE7E4;
+    --border:#DCE6ED;
+    --shadow: 0 10px 34px rgba(10,61,98,0.10);
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #E9F2FB 0%, transparent 55%),
+      radial-gradient(1000px 550px at 100% 105%, #E7F7EE 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--ink);
+    min-height:100vh;
+    padding:26px 20px 50px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .stage-note{
+    max-width:1300px;margin:0 auto 16px;text-align:center;
+    color:var(--ink-soft);font-size:12.5px;letter-spacing:.02em;
+  }
+  .stage-note b{color:var(--blue-deep);}
+
+  .dashboard{
+    max-width:1300px;margin:0 auto;background:var(--white);
+    border-radius:var(--radius-lg);box-shadow:var(--shadow);
+    display:flex;overflow:hidden;min-height:840px;
+    border:1px solid var(--border);
+  }
+
+  /* SIDEBAR */
+  .sidebar{
+    width:222px;flex-shrink:0;
+    background:linear-gradient(185deg,var(--blue-deep),#0d4a76 60%,var(--blue));
+    color:#fff;padding:22px 16px 18px;display:flex;flex-direction:column;
+  }
+  .side-brand{display:flex;align-items:center;gap:9px;margin-bottom:26px;padding:0 4px;}
+  .side-brand .logo{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .side-brand .name{font-size:13.5px;font-weight:700;}
+  .side-brand .sub{font-size:9.5px;color:rgba(255,255,255,0.65);}
+  .side-nav{display:flex;flex-direction:column;gap:3px;}
+  .side-item{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:11px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,0.72);cursor:pointer;}
+  .side-item .ic{width:18px;text-align:center;font-size:14px;}
+  .side-item:hover{background:rgba(255,255,255,0.08);color:#fff;}
+  .side-item.active{background:rgba(255,255,255,0.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18);}
+  .side-spacer{flex:1;}
+  .side-profile{display:flex;align-items:center;gap:9px;padding:12px 10px;background:rgba(255,255,255,0.08);border-radius:13px;margin-top:6px;}
+  .side-profile .av{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;}
+  .side-profile .nm{font-size:11.5px;font-weight:700;}
+  .side-profile .rl{font-size:9.5px;color:rgba(255,255,255,0.65);}
+
+  /* MAIN */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .topbar h1{font-size:18px;margin:0;}
+  .topbar .d{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .search-box{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:8px 12px;font-size:12px;color:var(--ink-soft);min-width:210px;}
+  .search-box input{border:none;background:none;outline:none;font-size:12px;width:100%;font-family:'Inter';color:var(--ink);}
+  .date-chip{display:flex;align-items:center;gap:6px;background:var(--blue-soft);color:var(--blue-deep);border-radius:11px;padding:8px 12px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+  .bell-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0;}
+  .bell-btn .badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--yellow);color:var(--blue-deep);border-radius:50%;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--white);}
+
+  .content{padding:22px 28px 34px;overflow-y:auto;}
+
+  /* KPI */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .kpi-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:15px 16px;position:relative;overflow:hidden;}
+  .kpi-card .top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .kpi-card .ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .kpi-card.blue .ic{background:var(--blue-soft);color:var(--blue);}
+  .kpi-card.yellow .ic{background:var(--yellow-soft);color:#a06e00;}
+  .kpi-card.green .ic{background:var(--green-soft);color:var(--green);}
+  .kpi-card.red .ic{background:var(--red-soft);color:var(--red);}
+  .kpi-card .num{font-family:'Space Grotesk';font-size:25px;font-weight:700;margin-top:10px;}
+  .kpi-card .lbl{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .kpi-card .trend{font-size:10px;font-weight:700;padding:3px 7px;border-radius:8px;}
+  .trend.up{background:var(--red-soft);color:var(--red);}
+  .trend.down{background:var(--green-soft);color:var(--green);}
+  .trend.flat{background:var(--bg-deep);color:var(--ink-soft);}
+
+  /* Medical projection analytics card */
+  .proj-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:22px;}
+  .proj-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .proj-head h2{font-size:15.5px;margin:0;}
+  .proj-head .d{font-size:11.5px;color:var(--ink-soft);margin-top:3px;max-width:520px;}
+  .proj-tag{display:inline-flex;align-items:center;gap:6px;background:var(--blue-soft);color:var(--blue-deep);font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:20px;}
+  .proj-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+  .proj-stat{background:var(--bg);border-radius:13px;padding:13px 15px;}
+  .proj-stat .n{font-family:'Space Grotesk';font-size:22px;font-weight:700;color:var(--blue-deep);}
+  .proj-stat .l{font-size:10.5px;color:var(--ink-soft);margin-top:2px;}
+  .proj-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .proj-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);padding:8px 10px;border-bottom:1px solid var(--border);font-weight:700;}
+  .proj-table td{padding:10px;border-bottom:1px solid var(--border);}
+  .proj-table tr:last-child td{border-bottom:none;}
+  .mini-bar{width:100%;height:6px;background:var(--bg-deep);border-radius:6px;overflow:hidden;}
+  .mini-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue-mid),var(--blue));border-radius:6px;}
+  .emp-cell{display:flex;align-items:center;gap:9px;}
+  .emp-av{width:28px;height:28px;border-radius:8px;background:var(--blue-soft);color:var(--blue-deep);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;}
+  .emp-name{font-weight:600;font-size:12px;}
+  .emp-role{font-size:10px;color:var(--ink-faint);}
+
+  /* Tabs */
+  .tabs-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab-btn{padding:9px 15px;border-radius:11px;font-size:12px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:7px;}
+  .tab-btn .cnt{background:var(--white);border-radius:8px;padding:1px 7px;font-size:10.5px;font-family:'IBM Plex Mono';color:var(--ink-faint);}
+  .tab-btn.active{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff;}
+  .tab-btn.active .cnt{background:rgba(255,255,255,0.18);color:#fff;}
+
+  /* Table */
+  .table-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+  table.main-table{width:100%;border-collapse:collapse;}
+  table.main-table thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink-faint);font-weight:700;padding:13px 14px;background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  table.main-table td{padding:13px 14px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle;}
+  table.main-table tbody tr:last-child td{border-bottom:none;}
+  table.main-table tbody tr:hover{background:#FAFCFE;}
+
+  .type-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;}
+  .type-ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12.5px;flex-shrink:0;}
+  .type-ic.medica{background:var(--blue-soft);color:var(--blue);}
+  .type-ic.vacaciones{background:var(--green-soft);color:var(--green);}
+  .type-ic.especial{background:var(--yellow-soft);color:#a06e00;}
+  .type-ic.tarde{background:var(--red-soft);color:var(--red);}
+  .type-ic.retiro{background:var(--red-soft);color:var(--red);}
+  .origen-tag{display:inline-block;margin-top:3px;font-size:9.5px;font-weight:600;color:var(--ink-faint);}
+  .origen-tag.bio::before{content:'📟 ';}
+  .origen-tag.emp::before{content:'🙋 ';}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;}
+  .badge.pendiente{background:var(--yellow-soft);color:#9c6c00;}
+  .badge.aprobada{background:var(--green-soft);color:var(--green);}
+  .badge.rechazada{background:var(--red-soft);color:var(--red);}
+  .badge.reconocida{background:var(--green-soft);color:var(--green);}
+  .badge.alerta{background:var(--red-soft);color:var(--red);}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .act-btn{border:1.5px solid var(--border);background:var(--white);border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--ink-soft);white-space:nowrap;}
+  .act-btn.approve{border-color:var(--green);color:var(--green);}
+  .act-btn.approve:hover{background:var(--green-soft);}
+  .act-btn.reject{border-color:var(--red);color:var(--red);}
+  .act-btn.reject:hover{background:var(--red-soft);}
+  .act-btn.ack{border-color:var(--blue);color:var(--blue);}
+  .act-btn.ack:hover{background:var(--blue-soft);}
+  .act-btn.file{color:var(--ink-soft);position:relative;}
+  .act-btn.file:hover{background:var(--bg);}
+  .act-btn .cnt{background:var(--yellow);color:var(--blue-deep);border-radius:50%;width:15px;height:15px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+  .act-btn:disabled{opacity:.55;cursor:default;}
+  .static-note{font-size:10.5px;color:var(--ink-faint);}
+
+  .expand-btn{width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--ink-soft);flex-shrink:0;}
+  .detail-row td{background:var(--bg);padding:0;}
+  .detail-inner{padding:14px 22px 16px 58px;display:none;}
+  .detail-inner.open{display:block;animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+  .detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .detail-item{background:var(--white);border:1px solid var(--border);border-radius:11px;padding:10px 12px;}
+  .detail-item .l{font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+  .detail-item .v{font-size:12.5px;font-weight:700;margin-top:3px;}
+  .ocr-note{margin-top:10px;background:var(--blue-soft);color:var(--blue-deep);border-radius:10px;padding:9px 12px;font-size:11px;}
+  .ocr-note b{font-family:'IBM Plex Mono';font-weight:600;}
+
+  .empty-state{text-align:center;padding:50px 10px;color:var(--ink-faint);}
+  .empty-state .ic{font-size:30px;margin-bottom:8px;}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,25,40,0.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal-box{background:var(--white);border-radius:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;padding:22px 24px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+  .modal-head h3{font-size:15.5px;margin:0;}
+  .modal-close{width:28px;height:28px;border-radius:8px;background:var(--bg);border:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--ink-soft);}
+  .modal-sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:16px;}
+  .modal-sub b{color:var(--blue-deep);}
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field textarea{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:11px 12px;font-size:13px;font-family:'Inter';resize:vertical;min-height:70px;color:var(--ink);}
+  .field textarea:focus{outline:none;border-color:var(--blue);}
+  .upload-box{border:1.6px dashed var(--border);border-radius:13px;padding:16px;text-align:center;background:var(--bg);cursor:pointer;}
+  .upload-box .ic{font-size:20px;color:var(--blue);}
+  .upload-box .t{font-size:11.5px;font-weight:600;margin-top:4px;}
+  .upload-box .d{font-size:10px;color:var(--ink-faint);margin-top:2px;}
+  .file-input{display:none;}
+  .thumb-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .thumb{width:56px;height:56px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--border);}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+  .thumb .rm{position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,0.55);color:#fff;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .action-row{display:flex;gap:8px;margin-top:10px;}
+  .mini-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--border);border-radius:11px;padding:10px;font-size:11.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;background:var(--white);}
+  .mini-btn.rec.active{border-color:#e0483b;color:#e0483b;background:#FDEDEB;}
+  .mini-btn .dot-rec{width:8px;height:8px;border-radius:50%;background:#e0483b;display:none;}
+  .mini-btn.rec.active .dot-rec{display:inline-block;animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:.2;}}
+  .voice-chip{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--ink-soft);}
+  .voice-chip .wave{display:flex;gap:2px;align-items:center;}
+  .voice-chip .wave i{width:3px;background:var(--blue);border-radius:2px;display:inline-block;}
+  .existing-atts{margin-bottom:14px;}
+  .existing-atts .att-chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:10.5px;color:var(--ink-soft);margin:0 6px 6px 0;}
+  .save-btn{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;font-weight:700;font-size:13px;cursor:pointer;margin-top:6px;box-shadow:0 8px 18px rgba(28,119,195,0.35);}
+
+  /* Toast */
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:12.5px;display:flex;align-items:center;gap:8px;box-shadow:0 10px 24px rgba(0,0,0,0.25);opacity:0;pointer-events:none;transition:.3s;z-index:200;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast .ic{color:var(--green);}
+
+  @media (max-width:1000px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .proj-stats{grid-template-columns:1fr;}
+    .detail-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:760px){
+    .dashboard{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;align-items:center;padding:14px 16px;}
+    .side-nav{display:none;}
+    .side-spacer{display:none;}
+    .side-profile{margin-top:0;margin-left:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage-note">Vista previa · <b>Panel de Gestión de Empleados</b> para mandos medios — misma estética que el portal del empleado, ahora en formato escritorio.</div>
+
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="side-brand">
+      <div class="logo">A</div>
+      <div>
+        <div class="name">Grupo Alfa</div>
+        <div class="sub">Panel de mandos medios</div>
+      </div>
+    </div>
+    <div class="side-nav">
+      <div class="side-item active"><span class="ic">🗂️</span>Incidencias</div>
+      <div class="side-item"><span class="ic">👥</span>Mi equipo</div>
+      <div class="side-item"><span class="ic">🩺</span>Ausencias médicas</div>
+      <div class="side-item"><span class="ic">📊</span>Reportes</div>
+      <div class="side-item"><span class="ic">⚙️</span>Configuración</div>
+    </div>
+    <div class="side-spacer"></div>
+    <div class="side-profile">
+      <div class="av">CF</div>
+      <div>
+        <div class="nm">Cecilia Fernández</div>
+        <div class="rl">Supervisora · Obra vial</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>Incidencias y novedades del equipo</h1>
+        <div class="d">Solicitudes cargadas por empleados y anomalías detectadas por el sistema biométrico de presentismo.</div>
+      </div>
+      <div class="search-box">🔎 <input type="text" placeholder="Buscar empleado..." id="searchInput" oninput="renderTable()"></div>
+      <div class="date-chip">📅 Julio 2026</div>
+      <div class="bell-btn">🔔<span class="badge" id="pendingBellCount">0</span></div>
+    </div>
+
+    <div class="content">
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="top"><div class="ic">🗂️</div><span class="trend flat">mes</span></div>
+          <div class="num" id="kpi-total">0</div>
+          <div class="lbl">Incidencias registradas</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="top"><div class="ic">⏳</div><span class="trend up" id="kpi-pend-trend">—</span></div>
+          <div class="num" id="kpi-pend">0</div>
+          <div class="lbl">Pendientes de acción</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="top"><div class="ic">📟</div><span class="trend up">bio</span></div>
+          <div class="num" id="kpi-bio">0</div>
+          <div class="lbl">Novedades biométricas sin reconocer</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="top"><div class="ic">🩺</div><span class="trend down">mes</span></div>
+          <div class="num" id="kpi-medica-mes">0</div>
+          <div class="lbl">Días de ausencia médica (mes)</div>
+        </div>
+      </div>
+
+      <!-- Medical projection analytics -->
+      <div class="proj-card">
+        <div class="proj-head">
+          <div>
+            <h2>Proyección de ausencias médicas</h2>
+            <div class="d">Los días proyectados surgen de la lectura automática (OCR + IA) del certificado médico adjuntado por cada empleado.</div>
+          </div>
+          <span class="proj-tag">⚙️ Cálculo automático · OCR/IA</span>
+        </div>
+
+        <div class="proj-stats">
+          <div class="proj-stat">
+            <div class="n" id="proj-mes">0 días</div>
+            <div class="l">Total de días ausentes este mes (equipo)</div>
+          </div>
+          <div class="proj-stat">
+            <div class="n" id="proj-prom">0 días</div>
+            <div class="l">Promedio mensual (últimos 12 meses)</div>
+          </div>
+          <div class="proj-stat">
+            <div class="n" id="proj-anio">0 días</div>
+            <div class="l">Total acumulado en el año</div>
+          </div>
+        </div>
+
+        <table class="proj-table">
+          <thead>
+            <tr><th>Empleado</th><th>Última ausencia</th><th>Proyección (OCR)</th><th>Este mes</th><th>Promedio mensual</th><th>Total año</th><th>Incidencia</th></tr>
+          </thead>
+          <tbody id="proj-table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-row" id="tabsRow">
+        <div class="tab-btn active" data-f="todas" onclick="setFilter('todas')">Todas <span class="cnt" id="cnt-todas">0</span></div>
+        <div class="tab-btn" data-f="solicitudes" onclick="setFilter('solicitudes')">Solicitudes <span class="cnt" id="cnt-solicitudes">0</span></div>
+        <div class="tab-btn" data-f="biometricas" onclick="setFilter('biometricas')">Novedades biométricas <span class="cnt" id="cnt-biometricas">0</span></div>
+        <div class="tab-btn" data-f="medicas" onclick="setFilter('medicas')">Ausencias médicas <span class="cnt" id="cnt-medicas">0</span></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <table class="main-table">
+          <thead>
+            <tr>
+              <th style="width:26px;"></th>
+              <th>Empleado</th>
+              <th>Tipo / Origen</th>
+              <th>Período / Detalle</th>
+              <th>Estado</th>
+              <th style="text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="ic">🗂️</div>
+          <div>No hay incidencias para este filtro.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Adjuntar al legajo -->
+<div class="modal-overlay" id="fileModalOverlay" onclick="if(event.target===this) closeFileModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Adjuntar al legajo</h3>
+      <div class="modal-close" onclick="closeFileModal()">✕</div>
+    </div>
+    <div class="modal-sub">Registro de <b id="modalEmpName">-</b> · <span id="modalRecTitle">-</span></div>
+
+    <div class="existing-atts" id="modalExistingAtts"></div>
+
+    <div class="field">
+      <label>Nota del jefe / observación</label>
+      <textarea id="modalNota" placeholder="Ej: se conversó con el empleado, se solicitó documentación adicional, etc."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Adjuntar foto o documento</label>
+      <div class="upload-box" onclick="document.getElementById('modalFile').click()">
+        <div class="ic">📷</div>
+        <div class="t">Tocar para tomar foto o subir un archivo</div>
+        <div class="d">JPG, PNG o PDF</div>
+      </div>
+      <input class="file-input" type="file" id="modalFile" accept="image/*,.pdf" capture="environment" onchange="handleModalFile(event)">
+      <div class="thumb-row" id="modalThumbs"></div>
+    </div>
+
+    <div class="field">
+      <label>Nota de voz</label>
+      <div class="action-row">
+        <div class="mini-btn rec" id="modalRecBtn" onclick="toggleModalVoice(this)">
+          <span class="dot-rec"></span><span>🎙️ Grabar nota de voz</span>
+        </div>
+      </div>
+      <div id="modalVoice"></div>
+    </div>
+
+    <button class="save-btn" onclick="saveFileModal()">Guardar en el legajo</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="ic">✓</span><span id="toastText"></span></div>
+
+<script>
+  const employees = {
+    mjuarez:{name:'Martín Juárez', role:'Operario · Obra vial', ini:'MJ'},
+    lbeltran:{name:'Lucía Beltrán', role:'Técnica · Obra vial', ini:'LB'},
+    drios:{name:'Diego Ríos', role:'Capataz · Obra vial', ini:'DR'},
+    asosa:{name:'Ana Sosa', role:'Administrativa', ini:'AS'},
+    cnunez:{name:'Carlos Núñez', role:'Operario · Obra vial', ini:'CN'}
+  };
+
+  const typeMeta = {
+    medica:{label:'Ausencia médica', ic:'🩺'},
+    vacaciones:{label:'Vacaciones', ic:'🏖️'},
+    especial:{label:'Solicitud especial', ic:'⭐'},
+    tarde:{label:'Llegada tarde', ic:'⏰'},
+    retiro:{label:'Retiro anticipado', ic:'🚪'}
+  };
+
+  // records: origen 'emp' (cargado por empleado) | 'bio' (detectado por sistema biométrico)
+  let records = [
+    { id:1, emp:'mjuarez', tipo:'medica', origen:'emp', periodo:'Desde el 03/05 · 10 días', estado:'reconocida',
+      ocr:{dias:10, medico:'Dr. Paz', vence:'13/05'}, atts:1 },
+    { id:2, emp:'mjuarez', tipo:'medica', origen:'emp', periodo:'Desde el 10/06 · 3 días', estado:'reconocida',
+      ocr:{dias:3, medico:'Dra. Ibáñez', vence:'13/06'}, atts:1 },
+    { id:3, emp:'mjuarez', tipo:'medica', origen:'emp', periodo:'14/04 · 1 día', estado:'alerta',
+      ocr:null, atts:0, nota:'Sin certificado adjuntado' },
+    { id:4, emp:'drios', tipo:'medica', origen:'emp', periodo:'Desde el 22/07 · en curso', estado:'pendiente',
+      ocr:{dias:5, medico:'Dra. Ibáñez', vence:'27/07'}, atts:1 },
+    { id:5, emp:'lbeltran', tipo:'vacaciones', origen:'emp', periodo:'12/08 al 22/08 · 10 días', estado:'pendiente', atts:0 },
+    { id:6, emp:'drios', tipo:'especial', sub:'Matrimonio', origen:'emp', periodo:'Fecha proyectada: 20/09', estado:'pendiente', atts:0 },
+    { id:7, emp:'asosa', tipo:'especial', sub:'Franco compensatorio', origen:'emp', periodo:'05/08', estado:'aprobada', atts:0 },
+    { id:8, emp:'lbeltran', tipo:'especial', sub:'Examen', origen:'emp', periodo:'15/08', estado:'aprobada', atts:1 },
+    { id:9, emp:'cnunez', tipo:'tarde', origen:'bio', periodo:'29/07 · 08:42 hs (15 min tarde)', estado:'pendiente', atts:0 },
+    { id:10, emp:'cnunez', tipo:'retiro', origen:'bio', periodo:'30/07 · 14:10 hs (95 min antes)', estado:'pendiente', atts:0 }
+  ];
+
+  let currentFilter = 'todas';
+  let expandedRows = new Set();
+  let activeModalRecId = null;
+
+  function empHtml(empKey){
+    const e = employees[empKey];
+    return '<div class="emp-cell"><div class="emp-av">'+e.ini+'</div><div><div class="emp-name">'+e.name+'</div><div class="emp-role">'+e.role+'</div></div></div>';
+  }
+
+  function badgeHtml(estado){
+    const map = {
+      pendiente:{cls:'pendiente', label:'Pendiente'},
+      aprobada:{cls:'aprobada', label:'Aprobada'},
+      rechazada:{cls:'rechazada', label:'Rechazada'},
+      reconocida:{cls:'reconocida', label:'Reconocida'},
+      alerta:{cls:'alerta', label:'Sin justificar'}
+    };
+    const m = map[estado];
+    return '<span class="badge '+m.cls+'"><span class="dot"></span>'+m.label+'</span>';
+  }
+
+  function actionsHtml(r){
+    let btns = '';
+    const needsApproval = (r.tipo==='vacaciones' || r.tipo==='especial') && r.estado==='pendiente';
+    const needsAck = (r.tipo==='medica' || r.tipo==='tarde' || r.tipo==='retiro') && (r.estado==='pendiente' || r.estado==='alerta');
+
+    if(needsApproval){
+      btns += '<button class="act-btn approve" onclick="resolveRecord('+r.id+',\'aprobada\')">✓ Aprobar</button>';
+      btns += '<button class="act-btn reject" onclick="resolveRecord('+r.id+',\'rechazada\')">✕ Rechazar</button>';
+    } else if(needsAck){
+      const lbl = r.estado==='alerta' ? '🔔 Reconocer anomalía' : '🔔 Reconocer';
+      btns += '<button class="act-btn ack" onclick="resolveRecord('+r.id+',\'reconocida\')">'+lbl+'</button>';
+    } else {
+      btns += '<span class="static-note">Resuelto</span>';
+    }
+
+    const attBadge = r.atts>0 ? '<span class="cnt">'+r.atts+'</span>' : '';
+    btns += '<button class="act-btn file" onclick="openFileModal('+r.id+')">📎 Legajo '+attBadge+'</button>';
+    return '<div class="row-actions">'+btns+'</div>';
+  }
+
+  function detailHtml(r){
+    if(r.tipo!=='medica') return '';
+    if(!r.ocr){
+      return '<div class="ocr-note" style="background:var(--red-soft);color:var(--red);"><b>OCR:</b> no se detectó certificado médico adjuntado. La ausencia figura sin justificar.</div>';
+    }
+    const stats = medicaStatsFor(r.emp);
+    return '<div class="detail-grid">'+
+      '<div class="detail-item"><div class="l">Días proyectados (OCR)</div><div class="v">'+r.ocr.dias+' días</div></div>'+
+      '<div class="detail-item"><div class="l">Profesional</div><div class="v">'+r.ocr.medico+'</div></div>'+
+      '<div class="detail-item"><div class="l">Vigencia hasta</div><div class="v">'+r.ocr.vence+'</div></div>'+
+      '<div class="detail-item"><div class="l">Total en el año (empleado)</div><div class="v">'+stats.anio+' días</div></div>'+
+      '</div>'+
+      '<div class="ocr-note"><b>IA:</b> certificado leído automáticamente. Días de reposo, profesional y vigencia precargados para validación de RR.HH.</div>';
+  }
+
+  function rowHtml(r){
+    const meta = typeMeta[r.tipo];
+    const origenLabel = r.origen==='bio' ? 'Detectado · biométrico' : 'Cargado por empleado';
+    const origenCls = r.origen==='bio' ? 'bio' : 'emp';
+    const typeLabel = r.sub ? (meta.label+' · '+r.sub) : meta.label;
+    const isExpandable = r.tipo==='medica';
+    const isOpen = expandedRows.has(r.id);
+
+    let html = '<tr>'+
+      '<td>'+(isExpandable ? '<div class="expand-btn" onclick="toggleExpand('+r.id+')">'+(isOpen?'▾':'▸')+'</div>' : '')+'</td>'+
+      '<td>'+empHtml(r.emp)+'</td>'+
+      '<td><div class="type-chip"><div class="type-ic '+r.tipo+'">'+meta.ic+'</div>'+typeLabel+'</div><div class="origen-tag '+origenCls+'">'+origenLabel+'</div></td>'+
+      '<td>'+r.periodo+(r.nota?('<div style="font-size:10.5px;color:var(--red);margin-top:2px;">'+r.nota+'</div>'):'')+'</td>'+
+      '<td>'+badgeHtml(r.estado)+'</td>'+
+      '<td style="text-align:right;">'+actionsHtml(r)+'</td>'+
+    '</tr>';
+
+    if(isExpandable){
+      html += '<tr class="detail-row"><td colspan="6"><div class="detail-inner'+(isOpen?' open':'')+'" id="detail-'+r.id+'">'+detailHtml(r)+'</div></td></tr>';
+    }
+    return html;
+  }
+
+  function toggleExpand(id){
+    if(expandedRows.has(id)) expandedRows.delete(id); else expandedRows.add(id);
+    renderTable();
+  }
+
+  function matchesFilter(r){
+    if(currentFilter==='todas') return true;
+    if(currentFilter==='solicitudes') return r.tipo==='vacaciones' || r.tipo==='especial';
+    if(currentFilter==='biometricas') return r.tipo==='tarde' || r.tipo==='retiro';
+    if(currentFilter==='medicas') return r.tipo==='medica';
+    return true;
+  }
+  function matchesSearch(r){
+    const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+    if(!q) return true;
+    return employees[r.emp].name.toLowerCase().includes(q);
+  }
+
+  function setFilter(f){
+    currentFilter = f;
+    document.querySelectorAll('.tab-btn').forEach(t=>t.classList.toggle('active', t.dataset.f===f));
+    renderTable();
+  }
+
+  function renderTable(){
+    const body = document.getElementById('tableBody');
+    const filtered = records.filter(r=>matchesFilter(r) && matchesSearch(r));
+    document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
+    body.innerHTML = filtered.map(rowHtml).join('');
+
+    document.getElementById('cnt-todas').textContent = records.length;
+    document.getElementById('cnt-solicitudes').textContent = records.filter(r=>r.tipo==='vacaciones'||r.tipo==='especial').length;
+    document.getElementById('cnt-biometricas').textContent = records.filter(r=>r.tipo==='tarde'||r.tipo==='retiro').length;
+    document.getElementById('cnt-medicas').textContent = records.filter(r=>r.tipo==='medica').length;
+
+    renderKPIs();
+    renderProjection();
+  }
+
+  function renderKPIs(){
+    const total = records.length;
+    const pend = records.filter(r=>r.estado==='pendiente'||r.estado==='alerta').length;
+    const bioPend = records.filter(r=>(r.tipo==='tarde'||r.tipo==='retiro') && r.estado==='pendiente').length;
+    const medicaMes = records.filter(r=>r.tipo==='medica' && r.ocr).reduce((a,r)=> r.id===4 ? a + 5 : a, 0); // días en curso julio
+    document.getElementById('kpi-total').textContent = total;
+    document.getElementById('kpi-pend').textContent = pend;
+    document.getElementById('kpi-bio').textContent = bioPend;
+    document.getElementById('kpi-medica-mes').textContent = medicaMes;
+    document.getElementById('pendingBellCount').textContent = pend;
+    document.getElementById('kpi-pend-trend').textContent = pend+' hoy';
+  }
+
+  // Mock annual figures per employee for the projection analytics panel
+  const annualMock = {
+    mjuarez:{anio:14, promedio:2.3},
+    drios:{anio:5, promedio:0.8},
+    lbeltran:{anio:0, promedio:0},
+    asosa:{anio:0, promedio:0},
+    cnunez:{anio:0, promedio:0}
+  };
+  function medicaStatsFor(empKey){ return annualMock[empKey] || {anio:0, promedio:0}; }
+
+  function renderProjection(){
+    const medicaRecs = records.filter(r=>r.tipo==='medica');
+    const mesTotal = medicaRecs.reduce((acc,r)=> r.id===4 ? acc+5 : acc, 0) + 0; // este mes: sólo la de Diego en curso
+    const promGeneral = 3.1; // promedio mensual histórico de equipo (mock)
+    const anioTotal = Object.values(annualMock).reduce((a,v)=>a+v.anio,0);
+
+    document.getElementById('proj-mes').textContent = mesTotal+' días';
+    document.getElementById('proj-prom').textContent = promGeneral+' días';
+    document.getElementById('proj-anio').textContent = anioTotal+' días';
+
+    // one row per employee with at least one medical record
+    const empKeys = [...new Set(medicaRecs.map(r=>r.emp))];
+    const body = document.getElementById('proj-table-body');
+    body.innerHTML = empKeys.map(empKey=>{
+      const e = employees[empKey];
+      const empRecs = medicaRecs.filter(r=>r.emp===empKey);
+      const last = empRecs[empRecs.length-1];
+      const stats = medicaStatsFor(empKey);
+      const esteMes = empKey==='drios' ? 5 : 0;
+      const barPct = Math.min(100, Math.round((stats.anio/20)*100));
+      const incidenciaBadge = last.estado==='alerta' ? badgeHtml('alerta') : (last.ocr ? badgeHtml('reconocida') : badgeHtml('pendiente'));
+      return '<tr>'+
+        '<td>'+empHtml(empKey)+'</td>'+
+        '<td>'+last.periodo+'</td>'+
+        '<td>'+(last.ocr ? last.ocr.dias+' días' : '—')+'</td>'+
+        '<td>'+esteMes+' días</td>'+
+        '<td>'+stats.promedio+' días/mes</td>'+
+        '<td><div class="mini-bar" style="margin-bottom:4px;"><i style="width:'+barPct+'%"></i></div>'+stats.anio+' días</td>'+
+        '<td>'+incidenciaBadge+'</td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  function resolveRecord(id, newStatus){
+    const r = records.find(x=>x.id===id);
+    if(!r) return;
+    r.estado = newStatus;
+    const labelMap = {aprobada:'aprobada', rechazada:'rechazada', reconocida:'reconocida'};
+    showToast(employees[r.emp].name+' · solicitud '+labelMap[newStatus]);
+    renderTable();
+  }
+
+  function openFileModal(id){
+    activeModalRecId = id;
+    const r = records.find(x=>x.id===id);
+    const meta = typeMeta[r.tipo];
+    document.getElementById('modalEmpName').textContent = employees[r.emp].name;
+    document.getElementById('modalRecTitle').textContent = (r.sub? meta.label+' · '+r.sub : meta.label)+' · '+r.periodo;
+    document.getElementById('modalNota').value='';
+    document.getElementById('modalThumbs').innerHTML='';
+    document.getElementById('modalVoice').innerHTML='';
+    document.getElementById('modalRecBtn').classList.remove('active');
+    const existing = document.getElementById('modalExistingAtts');
+    existing.innerHTML = r.atts>0 ? ('<span class="att-chip">📎 '+r.atts+' adjunto(s) ya cargado(s) en el legajo</span>') : '<span class="att-chip">Sin adjuntos previos</span>';
+    document.getElementById('fileModalOverlay').classList.add('show');
+  }
+  function closeFileModal(){
+    document.getElementById('fileModalOverlay').classList.remove('show');
+    activeModalRecId = null;
+  }
+
+  function handleModalFile(evt){
+    const files = evt.target.files;
+    if(!files || !files.length) return;
+    const prev = document.getElementById('modalThumbs');
+    Array.from(files).forEach(file=>{
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const thumb = document.createElement('div');
+        thumb.className='thumb';
+        if(file.type.startsWith('image/')){
+          thumb.innerHTML = '<img src="'+e.target.result+'"><div class="rm" onclick="this.parentElement.remove()">✕</div>';
+        } else {
+          thumb.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--blue-soft);font-size:18px;">📄</div><div class="rm" onclick="this.parentElement.remove()">✕</div>';
+        }
+        prev.appendChild(thumb);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function toggleModalVoice(btn){
+    const active = btn.classList.toggle('active');
+    const span = btn.querySelector('span:last-child');
+    const target = document.getElementById('modalVoice');
+    if(active){
+      span.textContent = 'Grabando...';
+      btn.dataset.t0 = Date.now();
+    } else {
+      const secs = Math.max(2, Math.round((Date.now() - (btn.dataset.t0||Date.now()))/1000));
+      span.textContent = '🎙️ Grabar nota de voz';
+      const chip = document.createElement('div');
+      chip.className='voice-chip';
+      let bars='';
+      for(let i=0;i<14;i++){ bars += '<i style="height:'+(4+Math.round(Math.random()*12))+'px"></i>'; }
+      chip.innerHTML = '<span class="wave">'+bars+'</span><span>Nota de voz · 0:'+String(secs).padStart(2,'0')+'</span>';
+      target.appendChild(chip);
+    }
+  }
+
+  function saveFileModal(){
+    const r = records.find(x=>x.id===activeModalRecId);
+    if(!r) return;
+    const thumbs = document.getElementById('modalThumbs').children.length;
+    const voice = document.getElementById('modalVoice').children.length;
+    const nota = document.getElementById('modalNota').value.trim();
+    const added = thumbs + voice + (nota?1:0);
+    r.atts = (r.atts||0) + (added || 1);
+    showToast('Se guardó la información en el legajo de '+employees[r.emp].name);
+    closeFileModal();
+    renderTable();
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    document.getElementById('toastText').textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2600);
+  }
+
+  renderTable();
+</script>
+</body>
+</html>

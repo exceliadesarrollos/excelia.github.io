@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excelia - Dashboard Core de Rendiciones</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js & Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-accent: #2563eb;
+            --primary-accent-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --bg-main: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-sidebar: #ffffff;
+            --surface-subtle: #f1f5f9;
+            --border-subtle: #e2e8f0;
+            --border-focus: #93c5fd;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            
+            /* Estados Financieros */
+            --status-success-bg: #ecfdf5;
+            --status-success-text: #065f46;
+            --status-success-border: #a7f3d0;
+            --status-pending-bg: #fffbeb;
+            --status-pending-text: #92400e;
+            --status-pending-border: #fde68a;
+            --status-danger-bg: #fef2f2;
+            --status-danger-text: #991b1b;
+            --status-danger-border: #fecaca;
+            --status-info-bg: #f0fdf4;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(226, 232, 240, 0.7);
+            --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(226, 232, 240, 0.8);
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 290px;
+            background: var(--surface-sidebar);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+        }
+
+        .brand-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .brand-subtitle {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .sidebar-content {
+            padding: 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .field-box label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .custom-select {
+            width: 100%;
+            background-color: var(--surface-subtle);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            border-radius: var(--radius-md);
+            padding: 9px 12px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .custom-select:focus {
+            background-color: #ffffff;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-subtle);
+            background: #fafbfc;
+        }
+
+        .channel-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #d1fae5;
+            padding: 6px 10px;
+            border-radius: 20px;
+            width: 100%;
+        }
+
+        .channel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Main View */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: var(--bg-main);
+        }
+
+        .header-bar {
+            height: 64px;
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .breadcrumbs span.current {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .content-area {
+            padding: 32px;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Cards & KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background: var(--surface-card);
+            padding: 20px 24px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-float);
+        }
+
+        .kpi-info p.kpi-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .kpi-info h3.kpi-value {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            font-feature-settings: "tnum";
+        }
+
+        .kpi-info span.kpi-subtext {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .kpi-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .icon-blue { background: #eff6ff; color: #2563eb; }
+        .icon-purple { background: #f5f3ff; color: #7c3aed; }
+        .icon-emerald { background: #ecfdf5; color: #059669; }
+        .icon-amber { background: #fffbeb; color: #d97706; }
+
+        /* Charts Layout */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .card-panel {
+            background: var(--surface-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            padding: 24px;
+        }
+
+        .panel-header {
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .panel-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 270px;
+            width: 100%;
+        }
+
+        /* Bottom Grid: Table + Bar */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .table-card {
+            background: var(--surface-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            height: 440px;
+            overflow: hidden;
+        }
+
+        .table-header-box {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+
+        .custom-table thead {
+            position: sticky;
+            top: 0;
+            background: #fafbfc;
+            z-index: 2;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .custom-table th {
+            padding: 12px 20px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .custom-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .custom-table tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .ticket-id {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-family: monospace;
+        }
+
+        .motivo-text {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .pill-tag {
+            display: inline-flex;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .tag-factura-a {
+            background: var(--primary-light);
+            color: var(--primary-accent);
+            border: 1px solid #dbeafe;
+        }
+
+        .tag-default {
+            background: var(--surface-subtle);
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .money-cell {
+            text-align: right;
+            font-weight: 700;
+            font-feature-settings: "tnum";
+            color: var(--text-main);
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .analytics-grid, .data-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar Control Panel -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <div class="brand-icon">E</div>
+                    <div>
+                        <h1 class="brand-title">Excelia</h1>
+                        <p class="brand-subtitle">Gestión de Viáticos</p>
+                    </div>
+                </div>
+
+                <div class="sidebar-content">
+                    <span class="section-label">Filtros de Búsqueda</span>
+                    
+                    <div class="filter-group">
+                        <div class="field-box">
+                            <label for="filterResponsable">Responsable</label>
+                            <select id="filterResponsable" class="custom-select">
+                                <option value="Todos">Todos los responsables</option>
+                                <option value="Carlos Rodríguez">Carlos Rodríguez</option>
+                                <option value="Mariana Paz">Mariana Paz</option>
+                                <option value="Juan Gómez">Juan Gómez</option>
+                                <option value="Sofía Alarcón">Sofía Alarcón</option>
+                                <option value="Martín Silva">Martín Silva</option>
+                            </select>
+                        </div>
+
+                        <div class="field-box">
+                            <label for="filterCategoria">Clasificación del Gasto</label>
+                            <select id="filterCategoria" class="custom-select">
+                                <option value="Todos">Todas las categorías</option>
+                                <option value="Movilidad">Movilidad</option>
+                                <option value="Alojamiento">Alojamiento</option>
+                                <option value="Gastronomía">Gastronomía</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="field-box">
+                            <label for="filterFactura">Tipo de Factura</label>
+                            <select id="filterFactura" class="custom-select">
+                                <option value="Todos">Todos</option>
+                                <option value="Factura A">Factura A</option>
+                                <option value="Factura B">Factura B</option>
+                                <option value="Factura C">Factura C</option>
+                                <option value="Ticket">Ticket</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="channel-pill">
+                    <span class="channel-dot"></span>
+                    Canal activo: WhatsApp API Business
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Execution Area -->
+        <main class="main-wrapper">
+            <header class="header-bar">
+                <div class="breadcrumbs">
+                    <span>Dashboard</span>
+                    <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-light);"></i>
+                    <span class="current">Panel Anual 2026 (240 Registros)</span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Seccion 1: Tarjetas de KPI -->
+                <section class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <p class="kpi-title">Tickets Mes Actual (Jun)</p>
+                            <h3 id="kpiMesActual" class="kpi-value">0</h3>
+                        </div>
+                        <div class="kpi-icon-wrap icon-blue"><i data-lucide="receipt" style="width: 20px;"></i></div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <p class="kpi-title">Total Tickets Anual</p>
+                            <h3 id="kpiTicketsAnual" class="kpi-value">0</h3>
+                            <span class="kpi-subtext">Promedio mensual: <strong id="kpiPromedioTickets" style="color: var(--text-main);">0</strong></span>
+                        </div>
+                        <div class="kpi-icon-wrap icon-purple"><i data-lucide="calendar" style="width: 20px;"></i></div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <p class="kpi-title">Monto Acumulado Año</p>
+                            <h3 id="kpiMontoAnual" class="kpi-value">$0</h3>
+                        </div>
+                        <div class="kpi-icon-wrap icon-emerald"><i data-lucide="dollar-sign" style="width: 20px;"></i></div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <p class="kpi-title">Monto Promedio Mensual</p>
+                            <h3 id="kpiMontoPromedio" class="kpi-value">$0</h3>
+                        </div>
+                        <div class="kpi-icon-wrap icon-amber"><i data-lucide="wallet" style="width: 20px;"></i></div>
+                    </div>
+                </section>
+
+                <!-- Seccion 2: Analítica Visual -->
+                <section class="analytics-grid">
+                    <div class="card-panel">
+                        <div class="panel-header">
+                            <h4 class="panel-title">Evolución Temporal 2026</h4>
+                            <p class="panel-subtitle">Relación de montos totales frente al caudal de tickets mensuales</p>
+                        </div>
+                        <div class="chart-box">
+                            <canvas id="chartEvolucion"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card-panel">
+                        <div class="panel-header">
+                            <h4 class="panel-title">Distribución por Categoría</h4>
+                            <p class="panel-subtitle">Clasificación total de gastos procesados</p>
+                        </div>
+                        <div class="chart-box" style="display: flex; align-items: center; justify-content: center;">
+                            <canvas id="chartCategorias"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seccion 3: Data Table & Facturación -->
+                <section class="data-grid">
+                    <div class="table-card">
+                        <div class="table-header-box">
+                            <h4 class="panel-title">Auditoría de Tickets Registrados</h4>
+                            <p class="panel-subtitle">Muestra de datos estructurados (Scrolleable)</p>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha / ID</th>
+                                        <th>Responsable / Motivo</th>
+                                        <th>Emisor / Tipo</th>
+                                        <th style="text-align: right;">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="panel-header">
+                            <h4 class="panel-title">Métricas por Tipo de Factura</h4>
+                            <p class="panel-subtitle">Promedio de tickets mensuales según comprobante</p>
+                        </div>
+                        <div class="chart-box">
+                            <canvas id="chartFacturas"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // 1. GENERACIÓN DE LA BASE DE DATOS EXACTA
+        const responsables = ["Carlos Rodríguez", "Mariana Paz", "Juan Gómez", "Sofía Alarcón", "Martín Silva"];
+        const categorias = ["Movilidad", "Alojamiento", "Gastronomía", "Otros"];
+        const facturas = ["Factura A", "Factura B", "Factura C", "Ticket"];
+        
+        const emisoresPorCat = {
+            "Movilidad": ["YPF S.A.", "Shell S.A.", "Telepeaje Plus", "Uber Argentina"],
+            "Alojamiento": ["Hotel Savoy", "Amérian Hoteles", "Hotel Broadway", "Sherton Lodging"],
+            "Gastronomía": ["Negroni Rosario", "Pizzería Güerrín", "El Noble", "Café Martínez"],
+            "Otros": ["Librería San Martín", "Ferretería Central", "Correo Argentino", "Insumos Computación"]
+        };
+
+        const motivosPorCat = {
+            "Movilidad": "Combustible para visita técnica", "Alojamiento": "Estadía por auditoría anual",
+            "Gastronomía": "Almuerzo de trabajo con cliente", "Otros": "Insumos menores de oficina"
+        };
+
+        const baseDeDatos = [];
+        let ticketIdCounter = 10001;
+
+        for (let mes = 0; mes < 12; mes++) {
+            for (let reg = 0; reg < 20; reg++) {
+                const responsable = responsables[(mes + reg) % responsables.length]; 
+                const categoria = categorias[reg % categorias.length];
+                const factura = facturas[(mes * reg) % facturas.length];
+                const emisores = emisoresPorCat[categoria];
+                const emisor = emisores[reg % emisores.length];
+                const motivo = motivosPorCat[categoria];
+
+                let montoBase = 12000;
+                if (categoria === "Alojamiento") montoBase = 95000;
+                if (categoria === "Gastronomía") montoBase = 22000;
+                const montoFinal = montoBase + ((reg * 73) % 4500); 
+
+                const dia = String((reg % 28) + 1).padStart(2, '0');
+                const mesString = String(mes + 1).padStart(2, '0');
+                const fecha = `2026-${mesString}-${dia}`;
+
+                baseDeDatos.push({
+                    id: `TK-${ticketIdCounter++}`,
+                    fecha: fecha,
+                    mesNum: mes,
+                    responsable: responsable,
+                    categoria: categoria,
+                    factura: factura,
+                    emisor: emisor,
+                    motivo: motivo,
+                    monto: montoFinal
+                });
+            }
+        }
+
+        const fResponsable = document.getElementById('filterResponsable');
+        const fCategoria = document.getElementById('filterCategoria');
+        const fFactura = document.getElementById('filterFactura');
+        const tableBody = document.getElementById('tableBody');
+
+        let chartEvolucion, chartCategorias, chartFacturas;
+
+        function inicializarGraficos() {
+            // Estilos globales de Chart.js
+            Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            const ctxEvolucion = document.getElementById('chartEvolucion').getContext('2d');
+            chartEvolucion = new Chart(ctxEvolucion, {
+                type: 'bar',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    datasets: [
+                        { label: 'Monto Mensual ($)', data: [], backgroundColor: 'rgba(37, 99, 235, 0.12)', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6, yAxisID: 'yMonto' },
+                        { label: 'Cant. Tickets', data: [], type: 'line', borderColor: '#059669', backgroundColor: '#059669', borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#ffffff', pointBorderWidth: 2, tension: 0.25, yAxisID: 'yTickets' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true } } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        yMonto: { position: 'left', grid: { color: '#f1f5f9' }, ticks: { callback: v => `$${(v/1000)}k` } },
+                        yTickets: { position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
+            chartCategorias = new Chart(ctxCategorias, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Movilidad', 'Alojamiento', 'Gastronomía', 'Otros'],
+                    datasets: [{ data: [], backgroundColor: ['#2563eb', '#7c3aed', '#059669', '#d97706'], borderWidth: 0, hoverOffset: 4 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 16, boxWidth: 10, usePointStyle: true } } },
+                    cutout: '72%'
+                }
+            });
+
+            const ctxFacturas = document.getElementById('chartFacturas').getContext('2d');
+            chartFacturas = new Chart(ctxFacturas, {
+                type: 'bar',
+                data: {
+                    labels: ['Factura A', 'Factura B', 'Factura C', 'Ticket'],
+                    datasets: [{ label: 'Promedio Mensual', data: [], backgroundColor: '#7c3aed', borderRadius: 6 }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#f1f5f9' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function procesarYActualizarDashboard() {
+            const resVal = fResponsable.value;
+            const catVal = fCategoria.value;
+            const facVal = fFactura.value;
+
+            const datosFiltrados = baseDeDatos.filter(item => {
+                return (resVal === "Todos" || item.responsable === resVal) &&
+                       (catVal === "Todos" || item.categoria === catVal) &&
+                       (facVal === "Todos" || item.factura === facVal);
+            });
+
+            let montoTotalAnual = 0;
+            let ticketsPorMes = Array(12).fill(0);
+            let montoPorMes = Array(12).fill(0);
+            let catCounts = { "Movilidad": 0, "Alojamiento": 0, "Gastronomía": 0, "Otros": 0 };
+            let facCounts = { "Factura A": 0, "Factura B": 0, "Factura C": 0, "Ticket": 0 };
+
+            tableBody.innerHTML = "";
+
+            datosFiltrados.forEach(item => {
+                montoTotalAnual += item.monto;
+                ticketsPorMes[item.mesNum]++;
+                montoPorMes[item.mesNum] += item.monto;
+                
+                if(catCounts[item.categoria] !== undefined) catCounts[item.categoria]++;
+                if(facCounts[item.factura] !== undefined) facCounts[item.factura]++;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight:600; color:var(--text-main);">${item.fecha}</div>
+                        <div class="ticket-id">${item.id}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:500;">${item.responsable}</div>
+                        <div class="motivo-text">"${item.motivo}"</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600; margin-bottom: 2px;">${item.emisor}</div>
+                        <span class="pill-tag ${item.factura === 'Factura A' ? 'tag-factura-a' : 'tag-default'}">${item.factura}</span>
+                    </td>
+                    <td class="money-cell">$${item.monto.toLocaleString('es-AR')}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            const totalTickets = datosFiltrados.length;
+            const promTicketsMes = (totalTickets / 12).toFixed(1);
+            const promMontoMes = Math.round(montoTotalAnual / 12);
+
+            document.getElementById('kpiMesActual').innerText = ticketsPorMes[5];
+            document.getElementById('kpiTicketsAnual').innerText = totalTickets;
+            document.getElementById('kpiPromedioTickets').innerText = promTicketsMes;
+            document.getElementById('kpiMontoAnual').innerText = `$${montoTotalAnual.toLocaleString('es-AR')}`;
+            document.getElementById('kpiMontoPromedio').innerText = `$${promMontoMes.toLocaleString('es-AR')}`;
+
+            chartEvolucion.data.datasets[0].data = montoPorMes;
+            chartEvolucion.data.datasets[1].data = ticketsPorMes;
+            chartEvolucion.update();
+
+            chartCategorias.data.datasets[0].data = [catCounts["Movilidad"], catCounts["Alojamiento"], catCounts["Gastronomía"], catCounts["Otros"]];
+            chartCategorias.update();
+
+            chartFacturas.data.datasets[0].data = [
+                (facCounts["Factura A"] / 12).toFixed(1),
+                (facCounts["Factura B"] / 12).toFixed(1),
+                (facCounts["Factura C"] / 12).toFixed(1),
+                (facCounts["Ticket"] / 12).toFixed(1)
+            ];
+            chartFacturas.update();
+        }
+
+        fResponsable.addEventListener('change', procesarYActualizarDashboard);
+        fCategoria.addEventListener('change', procesarYActualizarDashboard);
+        fFactura.addEventListener('change', procesarYActualizarDashboard);
+
+        window.onload = function() {
+            inicializarGraficos();
+            procesarYActualizarDashboard();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de KPIs - Gestión de Transportes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF;
+    --bg:#F3F7FA;
+    --bg-deep:#EAF1F6;
+    --ink:#132433;
+    --ink-soft:#5B6B78;
+    --ink-faint:#8C99A5;
+    --blue-deep:#0A3D62;
+    --blue:#1C77C3;
+    --blue-mid:#2E8BD9;
+    --blue-soft:#E7F2FB;
+    --green:#1E9E6D;
+    --green-soft:#E4F7EF;
+    --yellow:#F4B400;
+    --yellow-soft:#FDF3D9;
+    --red:#C0392B;
+    --red-soft:#FBE7E4;
+    --border:#DCE6ED;
+    --shadow: 0 10px 34px rgba(10,61,98,0.10);
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #E9F2FB 0%, transparent 55%),
+      radial-gradient(1000px 550px at 100% 105%, #E7F7EE 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--ink);
+    min-height:100vh;
+    padding:26px 20px 50px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+
+  .dashboard{
+    max-width:1400px;margin:0 auto;background:var(--white);
+    border-radius:var(--radius-lg);box-shadow:var(--shadow);
+    display:flex;overflow:hidden;
+    border:1px solid var(--border);
+    min-height:900px;
+  }
+
+  /* SIDEBAR */
+  .sidebar{
+    width:222px;flex-shrink:0;
+    background:linear-gradient(185deg,var(--blue-deep),#0d4a76 60%,var(--blue));
+    color:#fff;padding:22px 16px 18px;display:flex;flex-direction:column;
+  }
+  .side-brand{display:flex;align-items:center;gap:9px;margin-bottom:26px;padding:0 4px;}
+  .side-brand .logo{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .side-brand .name{font-size:13.5px;font-weight:700;}
+  .side-brand .sub{font-size:9.5px;color:rgba(255,255,255,0.65);}
+  .side-nav{display:flex;flex-direction:column;gap:3px;}
+  .side-item{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:11px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,0.72);cursor:pointer;}
+  .side-item .ic{width:18px;text-align:center;font-size:14px;}
+  .side-item:hover{background:rgba(255,255,255,0.08);color:#fff;}
+  .side-item.active{background:rgba(255,255,255,0.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18);}
+
+  /* MAIN */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .topbar h1{font-size:18px;margin:0;}
+  .topbar .d{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  
+  .time-filter{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .filter-btn{padding:8px 12px;border-radius:9px;font-size:11.5px;font-weight:600;
+    color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);cursor:pointer;}
+  .filter-btn.active{background:var(--blue);color:var(--white);border-color:var(--blue);}
+
+  .content{padding:22px 28px 34px;overflow-y:auto;}
+
+  /* KPI GRID */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .kpi-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:18px;position:relative;overflow:hidden;}
+  .kpi-card::before{
+    content:'';position:absolute;top:0;right:0;width:80px;height:80px;
+    background:radial-gradient(circle at top-right, rgba(255,255,255,0.4), transparent);
+    border-radius:50%;
+  }
+  .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
+  .kpi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .kpi-icon.blue{background:var(--blue-soft);}
+  .kpi-icon.green{background:var(--green-soft);}
+  .kpi-icon.yellow{background:var(--yellow-soft);}
+  .kpi-icon.red{background:var(--red-soft);}
+
+  .trend-badge{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:8px;}
+  .trend-badge.up{background:var(--red-soft);color:var(--red);}
+  .trend-badge.down{background:var(--green-soft);color:var(--green);}
+  .trend-badge.flat{background:var(--bg-deep);color:var(--ink-soft);}
+
+  .kpi-number{font-family:'Space Grotesk';font-size:28px;font-weight:700;margin:12px 0 4px;color:var(--blue-deep);}
+  .kpi-number.green{color:var(--green);}
+  .kpi-number.red{color:var(--red);}
+  .kpi-label{font-size:11px;color:var(--ink-soft);font-weight:500;}
+
+  /* CHART SECTION */
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+  .chart-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;}
+  .chart-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .chart-head h2{margin:0;font-size:15.5px;}
+  .chart-head .d{font-size:11px;color:var(--ink-soft);}
+
+  /* MINI CHART */
+  .mini-chart{height:150px;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:0 8px;}
+  .bar{width:100%;background:linear-gradient(180deg,var(--blue),var(--blue-mid));border-radius:6px 6px 0 0;position:relative;min-height:10px;}
+  .bar::after{content:attr(data-val);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--ink-soft);}
+  .bar.low{background:linear-gradient(180deg,var(--yellow),#d4a017);}
+  .bar.critical{background:linear-gradient(180deg,var(--red),#a02925);}
+
+  /* TABLE SECTION */
+  .table-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+  .table-head{padding:16px;border-bottom:1px solid var(--border);}
+  .table-head h3{margin:0;font-size:14px;}
+  table{width:100%;border-collapse:collapse;}
+  table thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink-faint);font-weight:700;padding:13px 16px;background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  table td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle;}
+  table tbody tr:last-child td{border-bottom:none;}
+  table tbody tr:hover{background:#FAFCFE;}
+
+  /* PROGRESS BAR */
+  .progress-bar{width:100%;height:6px;background:var(--bg-deep);border-radius:6px;overflow:hidden;margin:4px 0;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#20b876);border-radius:6px;}
+  .progress-fill.warning{background:linear-gradient(90deg,var(--yellow),#d4a017);}
+  .progress-fill.danger{background:linear-gradient(90deg,var(--red),#a02925);}
+
+  .status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;}
+  .status-badge.ok{background:var(--green-soft);color:var(--green);}
+  .status-badge.warning{background:var(--yellow-soft);color:#b9860a;}
+  .status-badge.critical{background:var(--red-soft);color:var(--red);}
+
+  @media(max-width:1200px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .chart-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="side-brand">
+      <div class="logo">📊</div>
+      <div>
+        <div class="name">TransportHub</div>
+        <div class="sub">v1.0</div>
+      </div>
+    </div>
+    <nav class="side-nav">
+      <div class="side-item" onclick="goTab('transportes')">
+        <span class="ic">🚚</span>
+        <span>Transportes</span>
+      </div>
+      <div class="side-item" onclick="goTab('documentos')">
+        <span class="ic">📋</span>
+        <span>Documentos</span>
+      </div>
+      <div class="side-item active">
+        <span class="ic">📈</span>
+        <span>KPIs</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <h1>Dashboard de KPIs</h1>
+        <div class="d">Indicadores clave de rendimiento - Gestión de transportes</div>
+      </div>
+      <div class="time-filter">
+        <button class="filter-btn active" onclick="setFilter(this, 'mes')">Este mes</button>
+        <button class="filter-btn" onclick="setFilter(this, 'trimestre')">Trimestre</button>
+        <button class="filter-btn" onclick="setFilter(this, 'año')">Año</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+      <!-- KPI GRID -->
+      <div class="kpi-grid">
+        <!-- UNIDADES DISPONIBLES -->
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">UNIDADES DISPONIBLES</div>
+              <div class="kpi-number green" id="kpi-disponibles">4</div>
+              <div class="kpi-label">de 5 total</div>
+            </div>
+            <div class="kpi-icon green">🟢</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:80%;"></div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--ink-soft);">
+            <strong>80%</strong> disponibilidad
+          </div>
+        </div>
+
+        <!-- UNIDADES NO DISPONIBLES -->
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">UNIDADES NO DISPONIBLES</div>
+              <div class="kpi-number red" id="kpi-no-disponibles">1</div>
+              <div class="kpi-label">mantenimiento / reparación</div>
+            </div>
+            <div class="kpi-icon red">🔴</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill danger" style="width:20%;"></div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--ink-soft);">
+            <strong>20%</strong> indisponibles
+          </div>
+        </div>
+
+        <!-- CHOFERES DISPONIBLES -->
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">CHOFERES HABILITADOS</div>
+              <div class="kpi-number green" id="kpi-chof-disp">3</div>
+              <div class="kpi-label">de 3 total</div>
+            </div>
+            <div class="kpi-icon green">👤</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:100%;"></div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--ink-soft);">
+            <strong>100%</strong> operativos
+          </div>
+        </div>
+
+        <!-- DOCUMENTACIÓN AL DÍA -->
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">DOCUMENTACIÓN VIGENTE</div>
+              <div class="kpi-number blue" id="kpi-doc-vigente">85</div>
+              <div class="kpi-label">de 100 documentos</div>
+            </div>
+            <div class="kpi-icon blue">📋</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill warning" style="width:85%;"></div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--ink-soft);">
+            <strong>15 pendientes</strong> de renovación
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="chart-grid">
+        <!-- DISPONIBILIDAD PROMEDIO MENSUAL -->
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <h2>Disponibilidad Promedio</h2>
+              <div class="d">Últimos 12 meses</div>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--green);">↑ +5.2%</span>
+          </div>
+          <div class="mini-chart">
+            <div class="bar" style="height:60%;" data-val="78%"></div>
+            <div class="bar" style="height:65%;" data-val="82%"></div>
+            <div class="bar" style="height:70%;" data-val="85%"></div>
+            <div class="bar low" style="height:55%;" data-val="68%"></div>
+            <div class="bar" style="height:72%;" data-val="88%"></div>
+            <div class="bar" style="height:80%;" data-val="95%"></div>
+            <div class="bar" style="height:75%;" data-val="80%"></div>
+            <div class="bar" style="height:82%;" data-val="92%"></div>
+            <div class="bar" style="height:85%;" data-val="96%"></div>
+            <div class="bar" style="height:78%;" data-val="85%"></div>
+            <div class="bar" style="height:80%;" data-val="87%"></div>
+            <div class="bar" style="height:88%;" data-val="96%"></div>
+          </div>
+        </div>
+
+        <!-- DEMORA PROMEDIO DE INGRESO -->
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <h2>Demora Promedio de Ingreso</h2>
+              <div class="d">Establecimientos receptores</div>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--red);">↑ +12 min</span>
+          </div>
+          <div class="mini-chart">
+            <div class="bar" style="height:45%;" data-val="28 min"></div>
+            <div class="bar" style="height:55%;" data-val="35 min"></div>
+            <div class="bar" style="height:65%;" data-val="42 min"></div>
+            <div class="bar low" style="height:72%;" data-val="48 min"></div>
+            <div class="bar critical" style="height:88%;" data-val="58 min"></div>
+            <div class="bar low" style="height:68%;" data-val="45 min"></div>
+            <div class="bar" style="height:52%;" data-val="38 min"></div>
+            <div class="bar" style="height:60%;" data-val="42 min"></div>
+            <div class="bar" style="height:48%;" data-val="32 min"></div>
+            <div class="bar" style="height:55%;" data-val="38 min"></div>
+            <div class="bar" style="height:62%;" data-val="45 min"></div>
+            <div class="bar low" style="height:70%;" data-val="50 min"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA DE DETALLE -->
+      <div class="table-card">
+        <div class="table-head">
+          <h3>Resumen por Unidad · Este Mes</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Patente</th>
+              <th>Viajes</th>
+              <th>Disponibilidad</th>
+              <th>Documentos Vigentes</th>
+              <th>Demora Promedio</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>AA-100-AB</strong></td>
+              <td>24</td>
+              <td>
+                <div class="progress-bar" style="margin:0;">
+                  <div class="progress-fill" style="width:100%;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--ink-soft);">100%</span>
+              </td>
+              <td>4/4 ✓</td>
+              <td>28 min</td>
+              <td><span class="status-badge ok">Óptimo</span></td>
+            </tr>
+            <tr>
+              <td><strong>AB-200-CD</strong></td>
+              <td>0</td>
+              <td>
+                <div class="progress-bar" style="margin:0;">
+                  <div class="progress-fill danger" style="width:0%;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--ink-soft);">0%</span>
+              </td>
+              <td>2/4 ⚠️</td>
+              <td>—</td>
+              <td><span class="status-badge critical">Fuera de servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>AC-300-EF</strong></td>
+              <td>18</td>
+              <td>
+                <div class="progress-bar" style="margin:0;">
+                  <div class="progress-fill warning" style="width:80%;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--ink-soft);">80%</span>
+              </td>
+              <td>3/4 ⚠️</td>
+              <td>42 min</td>
+              <td><span class="status-badge warning">Próximo a vencer</span></td>
+            </tr>
+            <tr>
+              <td><strong>AD-400-GH</strong></td>
+              <td>22</td>
+              <td>
+                <div class="progress-bar" style="margin:0;">
+                  <div class="progress-fill" style="width:95%;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--ink-soft);">95%</span>
+              </td>
+              <td>4/4 ✓</td>
+              <td>32 min</td>
+              <td><span class="status-badge ok">Óptimo</span></td>
+            </tr>
+            <tr>
+              <td><strong>AE-500-IJ</strong></td>
+              <td>19</td>
+              <td>
+                <div class="progress-bar" style="margin:0;">
+                  <div class="progress-fill" style="width:75%;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--ink-soft);">75%</span>
+              </td>
+              <td>3/4 ⚠️</td>
+              <td>48 min</td>
+              <td><span class="status-badge warning">Próximo a vencer</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setFilter(btn, period) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Aquí iría la lógica para cambiar datos según el período
+  }
+
+  function goTab(tab) {
+    // Navegar a otras pestañas
+    console.log('Navegando a:', tab);
+  }
+
+  // Animación inicial de los números
+  function animateValue(element, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      element.textContent = Math.floor(progress * (end - start) + start);
+      if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  }
+
+  // Init
+  setTimeout(() => {
+    animateValue(document.getElementById('kpi-disponibles'), 0, 4, 800);
+    animateValue(document.getElementById('kpi-no-disponibles'), 0, 1, 800);
+    animateValue(document.getElementById('kpi-chof-disp'), 0, 3, 800);
+    animateValue(document.getElementById('kpi-doc-vigente'), 0, 85, 800);
+  }, 200);
+</script>
+
+</body>
+</html>

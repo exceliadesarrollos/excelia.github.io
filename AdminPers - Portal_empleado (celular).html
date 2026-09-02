@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Portal Empleado · Vista previa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#FFFFFF;
+    --bg:#F3F7FA;
+    --bg-deep:#EAF1F6;
+    --ink:#132433;
+    --ink-soft:#5B6B78;
+    --ink-faint:#8C99A5;
+    --blue-deep:#0A3D62;
+    --blue:#1C77C3;
+    --blue-mid:#2E8BD9;
+    --blue-soft:#E7F2FB;
+    --green:#1E9E6D;
+    --green-soft:#E4F7EF;
+    --yellow:#F4B400;
+    --yellow-soft:#FDF3D9;
+    --border:#DCE6ED;
+    --shadow: 0 10px 30px rgba(10,61,98,0.10);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,sans-serif;
+    background:
+      radial-gradient(1000px 500px at 15% -10%, #E9F2FB 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, #E7F7EE 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:32px 16px 60px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .stage{
+    width:100%;
+    max-width:1100px;
+    display:flex;
+    gap:36px;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .stage-note{
+    width:100%;
+    max-width:430px;
+    text-align:center;
+    margin:0 auto 18px;
+    color:var(--ink-soft);
+    font-size:12.5px;
+    letter-spacing:.02em;
+  }
+  .stage-note b{color:var(--blue-deep);}
+  .col{display:flex;flex-direction:column;align-items:center;}
+
+  /* Phone frame */
+  .phone{
+    width:390px;
+    height:820px;
+    background:var(--ink);
+    border-radius:46px;
+    padding:12px;
+    box-shadow: var(--shadow), 0 0 0 1px rgba(10,61,98,0.06);
+    position:relative;
+    flex-shrink:0;
+  }
+  .notch{
+    position:absolute;
+    top:12px;left:50%;transform:translateX(-50%);
+    width:120px;height:22px;
+    background:var(--ink);
+    border-radius:0 0 16px 16px;
+    z-index:30;
+  }
+  .screen{
+    background:var(--bg);
+    width:100%;height:100%;
+    border-radius:34px;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* Header */
+  .app-header{
+    background: linear-gradient(135deg, var(--blue-deep), #0d4a76 55%, var(--blue));
+    color:#fff;
+    padding:20px 18px 16px;
+    flex-shrink:0;
+    position:relative;
+  }
+  .header-top{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px;
+  }
+  .brandmark{
+    display:flex;align-items:center;gap:9px;
+  }
+  .brandmark .logo{
+    width:30px;height:30px;border-radius:9px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk';font-weight:700;font-size:13px;
+    border:1px solid rgba(255,255,255,0.35);
+  }
+  .brandmark .name{font-size:13px;font-weight:600;letter-spacing:.01em;}
+  .brandmark .sub{font-size:10px;color:rgba(255,255,255,0.65);}
+
+  .conn-toggle{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.22);
+    padding:5px 10px 5px 8px;
+    border-radius:20px;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:600;
+    user-select:none;
+    transition:.25s;
+  }
+  .conn-toggle .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(30,158,109,0.25);transition:.25s;}
+  .conn-toggle.offline .dot{background:var(--yellow);box-shadow:0 0 0 3px rgba(244,180,0,0.3);}
+  .conn-toggle.offline{background:rgba(244,180,0,0.18);border-color:rgba(244,180,0,0.4);}
+
+  .user-row{display:flex;align-items:center;gap:11px;}
+  .avatar{
+    width:42px;height:42px;border-radius:12px;
+    background:rgba(255,255,255,0.16);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-family:'Space Grotesk';font-size:15px;
+    border:1px solid rgba(255,255,255,0.3);
+  }
+  .user-meta .greet{font-size:11.5px;color:rgba(255,255,255,0.7);}
+  .user-meta .uname{font-size:15px;font-weight:600;}
+  .bell{margin-left:auto;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;}
+  .bell .badge{position:absolute;top:-3px;right:-3px;width:15px;height:15px;background:var(--yellow);color:var(--blue-deep);border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--blue-deep);}
+
+  /* Sync radar pill */
+  .radar-pill{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,0.95);
+    color:var(--blue-deep);
+    border-radius:14px;
+    padding:9px 12px;
+    font-size:11.5px;
+    font-weight:600;
+    box-shadow:0 6px 16px rgba(0,0,0,0.12);
+    cursor:pointer;
+    position:relative;
+  }
+  .radar-pill .ring{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--yellow);
+    position:relative;
+    flex-shrink:0;
+  }
+  .radar-pill .ring::after{
+    content:'';position:absolute;inset:-4px;border-radius:50%;
+    border:2px solid var(--yellow); opacity:.5;
+    animation:pulse 1.8s infinite;
+  }
+  .radar-pill.synced .ring{background:var(--green);}
+  .radar-pill.synced .ring::after{border-color:var(--green);}
+  @keyframes pulse{0%{transform:scale(0.6);opacity:.7;}100%{transform:scale(1.8);opacity:0;}}
+  .radar-count{margin-left:auto;background:var(--blue-soft);color:var(--blue);border-radius:8px;padding:2px 7px;font-size:10.5px;font-family:'IBM Plex Mono';}
+
+  /* Main scroll area */
+  .app-main{flex:1;overflow-y:auto;padding:16px 16px 90px;}
+  .app-main::-webkit-scrollbar{display:none;}
+  .view{display:none;animation:fadeIn .35s ease;}
+  .view.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .section-title{font-size:13px;font-weight:700;color:var(--ink);margin:18px 0 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title span.link{font-size:11px;color:var(--blue);font-weight:600;cursor:pointer;font-family:'Inter';}
+
+  /* Summary cards row */
+  .summary-row{display:flex;gap:10px;margin-top:4px;}
+  .sum-card{
+    flex:1;background:var(--white);border-radius:var(--radius-md);
+    padding:12px 12px;border:1px solid var(--border);
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .sum-card .num{font-family:'Space Grotesk';font-size:20px;font-weight:700;color:var(--blue-deep);}
+  .sum-card .lbl{font-size:10.5px;color:var(--ink-soft);font-weight:500;line-height:1.2;}
+  .sum-card.green .num{color:var(--green);}
+  .sum-card.yellow .num{color:#b9860a;}
+
+  /* Tiles for request types */
+  .tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .tile{
+    background:var(--white);border:1px solid var(--border);
+    border-radius:var(--radius-md);padding:14px 12px;
+    cursor:pointer; transition:.15s; position:relative; overflow:hidden;
+  }
+  .tile:active{transform:scale(0.97);}
+  .tile .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;}
+  .tile.b .ic{background:var(--blue-soft);color:var(--blue);}
+  .tile.g .ic{background:var(--green-soft);color:var(--green);}
+  .tile.y .ic{background:var(--yellow-soft);color:#a06e00;}
+  .tile .t{font-size:12.5px;font-weight:700;color:var(--ink);}
+  .tile .d{font-size:10.5px;color:var(--ink-soft);margin-top:2px;}
+  .tile.wide{grid-column:1/3;display:flex;align-items:center;gap:12px;}
+  .tile.wide .ic{margin-bottom:0;}
+
+  /* Cards / list items */
+  .req-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 14px;margin-bottom:10px;}
+  .req-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .req-type{font-size:12.5px;font-weight:700;}
+  .req-date{font-size:10.5px;color:var(--ink-faint);font-family:'IBM Plex Mono';margin-top:2px;}
+  .status-pill{font-size:9.5px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;letter-spacing:.02em;}
+  .status-pill.encola{background:var(--yellow-soft);color:#9c6c00;}
+  .status-pill.sync{background:var(--blue-soft);color:var(--blue);}
+  .status-pill.ok{background:var(--green-soft);color:var(--green);}
+  .status-pill.rojo{background:#FBE7E4;color:#C0392B;}
+  .semaforo-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+  .req-progress{height:4px;background:var(--bg-deep);border-radius:4px;margin-top:10px;overflow:hidden;}
+  .req-progress i{display:block;height:100%;background:var(--blue-mid);border-radius:4px;transition:width .4s;}
+  .req-ai{margin-top:9px;background:var(--blue-soft);border-radius:10px;padding:8px 10px;font-size:10.5px;color:var(--blue-deep);display:none;}
+  .req-ai.show{display:block;}
+  .req-ai b{font-family:'IBM Plex Mono';font-weight:600;}
+  .req-atts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
+  .att-chip{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:10px;color:var(--ink-soft);}
+
+  .empty-state{text-align:center;padding:40px 10px;color:var(--ink-faint);}
+  .empty-state .ic{font-size:30px;margin-bottom:8px;}
+  .empty-state .t{font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+  .empty-state .d{font-size:11px;margin-top:4px;}
+
+  /* Bottom nav */
+  .bottom-nav{
+    position:absolute;bottom:0;left:0;right:0;
+    background:var(--white);
+    border-top:1px solid var(--border);
+    display:flex;
+    padding:9px 4px 12px;
+    z-index:20;
+  }
+  .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--ink-faint);}
+  .nav-btn .ic{font-size:17px;}
+  .nav-btn .lbl{font-size:9.5px;font-weight:600;}
+  .nav-btn.active{color:var(--blue);}
+  .nav-btn.center{position:relative;top:-16px;}
+  .nav-btn.center .ic{
+    width:48px;height:48px;border-radius:16px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 18px rgba(28,119,195,0.4);
+    font-size:20px;
+  }
+  .nav-btn.center .lbl{color:var(--blue-deep);}
+
+  /* Forms */
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .back-btn{width:30px;height:30px;border-radius:9px;background:var(--white);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;}
+  .form-title{font-size:15px;font-weight:700;font-family:'Space Grotesk';}
+  .form-sub{font-size:11px;color:var(--ink-soft);margin-top:2px;margin-bottom:14px;}
+
+  .type-tabs{display:flex;gap:6px;background:var(--bg-deep);padding:4px;border-radius:12px;margin-bottom:16px;}
+  .type-tab{flex:1;text-align:center;padding:8px 4px;font-size:10.5px;font-weight:700;border-radius:9px;cursor:pointer;color:var(--ink-soft);}
+  .type-tab.active{background:var(--white);color:var(--blue-deep);box-shadow:0 2px 6px rgba(10,61,98,0.12);}
+
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field label .opt{font-weight:500;color:var(--ink-faint);}
+  .field input[type=text], .field input[type=date], .field textarea, .field select{
+    width:100%;border:1.5px solid var(--border);border-radius:11px;padding:11px 12px;
+    font-size:13px;font-family:'Inter';background:var(--white);color:var(--ink);
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{outline:none;border-color:var(--blue);}
+  .field textarea{resize:vertical;min-height:70px;}
+  .row2{display:flex;gap:10px;}
+  .row2 .field{flex:1;}
+
+  .special-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+  .special-opt{
+    border:1.5px solid var(--border);border-radius:11px;padding:10px 8px;text-align:center;
+    font-size:11px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  }
+  .special-opt .ic{font-size:16px;display:block;margin-bottom:4px;}
+  .special-opt.active{border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep);}
+
+  /* Upload zone */
+  .upload-box{border:1.6px dashed var(--border);border-radius:13px;padding:16px;text-align:center;background:var(--bg);cursor:pointer;}
+  .upload-box:hover{border-color:var(--blue-mid);}
+  .upload-box .ic{font-size:22px;color:var(--blue);}
+  .upload-box .t{font-size:11.5px;font-weight:600;margin-top:4px;}
+  .upload-box .d{font-size:10px;color:var(--ink-faint);margin-top:2px;}
+  .file-input{display:none;}
+
+  .action-row{display:flex;gap:8px;margin-top:10px;}
+  .mini-btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+    border:1.5px solid var(--border);border-radius:11px;padding:10px;
+    font-size:11.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;background:var(--white);
+  }
+  .mini-btn.rec.active{border-color:#e0483b;color:#e0483b;background:#FDEDEB;}
+  .mini-btn .dot-rec{width:8px;height:8px;border-radius:50%;background:#e0483b;display:none;}
+  .mini-btn.rec.active .dot-rec{display:inline-block;animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:.2;}}
+
+  .thumb-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .thumb{width:56px;height:56px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--border);}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+  .thumb .rm{position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,0.55);color:#fff;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .voice-chip, .text-chip{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--ink-soft);}
+  .voice-chip .wave{display:flex;gap:2px;align-items:center;}
+  .voice-chip .wave i{width:3px;background:var(--blue);border-radius:2px;display:inline-block;}
+
+  .ocr-box{margin-top:10px;background:var(--green-soft);border:1px solid #cdeee0;border-radius:11px;padding:10px 12px;font-size:10.5px;color:#166847;display:none;}
+  .ocr-box.show{display:block;animation:fadeIn .3s ease;}
+  .ocr-box .h{font-weight:700;font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+
+  .submit-btn{
+    width:100%;padding:13px;border:none;border-radius:13px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    color:#fff;font-weight:700;font-size:13px;cursor:pointer;margin-top:8px;
+    box-shadow:0 8px 18px rgba(28,119,195,0.35);
+  }
+  .submit-btn:active{transform:scale(0.98);}
+  .helper-note{display:flex;gap:7px;background:var(--yellow-soft);border-radius:10px;padding:9px 10px;font-size:10.5px;color:#8a6100;margin-bottom:14px;line-height:1.4;}
+
+  /* Toast */
+  .toast{
+    position:absolute;bottom:96px;left:16px;right:16px;
+    background:var(--ink);color:#fff;padding:11px 14px;border-radius:12px;
+    font-size:12px;display:flex;align-items:center;gap:8px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.25);
+    transform:translateY(20px);opacity:0;pointer-events:none;transition:.3s;
+    z-index:40;
+  }
+  .toast.show{transform:none;opacity:1;}
+  .toast .ic{color:var(--green);font-size:14px;}
+
+  /* Profile view */
+  .profile-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;text-align:center;margin-bottom:14px;}
+  .profile-card .av{width:64px;height:64px;border-radius:18px;background:var(--blue-soft);color:var(--blue-deep);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:22px;margin:0 auto 10px;}
+  .info-row{display:flex;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--border);font-size:12px;}
+  .info-row:last-child{border-bottom:none;}
+  .info-row span:first-child{color:var(--ink-soft);}
+  .info-row span:last-child{font-weight:600;}
+
+  /* Sync panel (bottom sheet) */
+  .sheet-overlay{position:absolute;inset:0;background:rgba(10,25,40,0.45);z-index:50;opacity:0;pointer-events:none;transition:.25s;}
+  .sheet-overlay.show{opacity:1;pointer-events:auto;}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;
+    background:var(--white);border-radius:22px 22px 0 0;
+    padding:16px 18px 22px;
+    transform:translateY(100%);transition:.3s ease;
+    max-height:78%;overflow-y:auto;
+    z-index:51;
+  }
+  .sheet.show{transform:none;}
+  .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 12px;}
+  .sheet h3{font-size:14px;margin:0 0 3px;}
+  .sheet .d{font-size:11px;color:var(--ink-soft);margin-bottom:14px;}
+  .pipeline-step{display:flex;gap:10px;margin-bottom:14px;}
+  .pipeline-step .pt{width:26px;height:26px;border-radius:8px;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+  .pipeline-step .tx b{display:block;font-size:11.5px;}
+  .pipeline-step .tx span{font-size:10.5px;color:var(--ink-soft);}
+
+  /* Right-side annotation panel (desktop) */
+  .notes{
+    width:300px;background:var(--white);border:1px solid var(--border);
+    border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow);
+    font-size:12.5px;color:var(--ink-soft);line-height:1.55;
+  }
+  .notes h3{font-size:14px;margin:0 0 4px;color:var(--ink);}
+  .notes .tag{display:inline-flex;gap:6px;align-items:center;background:var(--blue-soft);color:var(--blue-deep);font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:20px;margin-bottom:14px;}
+  .notes ul{padding-left:18px;margin:6px 0 16px;}
+  .notes li{margin-bottom:7px;}
+  .notes .badgebar{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .notes .badgebar span{background:var(--bg-deep);color:var(--blue-deep);font-size:10px;font-weight:600;padding:4px 8px;border-radius:8px;}
+  .swatches{display:flex;gap:8px;margin:10px 0 4px;}
+  .sw{width:26px;height:26px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);}
+  @media (max-width: 900px){ .notes{display:none;} }
+  @media (max-width: 430px){
+    .phone{width:100%;max-width:390px;height:88vh;min-height:700px;}
+    body{padding:14px 8px 30px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="col" style="flex:1;min-width:300px;">
+    <div class="stage-note">Vista previa · <b>Portal del Empleado</b> — prototipo interactivo optimizado para celular / tablet. Tocá los elementos para probar el flujo.</div>
+
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+
+        <!-- HEADER -->
+        <div class="app-header">
+          <div class="header-top">
+            <div class="brandmark">
+              <div class="logo">P</div>
+              <div>
+                <div class="name">Portal Empleado</div>
+                <div class="sub">Grupo Alfa · demo cliente</div>
+              </div>
+            </div>
+            <div class="conn-toggle" id="connToggle" onclick="toggleConnection()">
+              <span class="dot"></span>
+              <span id="connLabel">En línea</span>
+            </div>
+          </div>
+
+          <div class="user-row">
+            <div class="avatar">MJ</div>
+            <div class="user-meta">
+              <div class="greet">Hola,</div>
+              <div class="uname">Martín Juárez</div>
+            </div>
+            <div class="bell">🔔<span class="badge">2</span></div>
+          </div>
+
+          <div class="radar-pill" id="radarPill" style="margin-top:14px;" onclick="openSheet()">
+            <span class="ring" id="radarRing"></span>
+            <span id="radarText">Radar de sincronización: sin pendientes</span>
+            <span class="radar-count" id="radarCount">0</span>
+          </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="app-main">
+
+          <!-- HOME VIEW -->
+          <div class="view active" id="view-home">
+            <div class="section-title">Resumen</div>
+            <div class="summary-row">
+              <div class="sum-card"><div class="num" id="stat-total">0</div><div class="lbl">Solicitudes totales</div></div>
+              <div class="sum-card yellow"><div class="num" id="stat-pend">0</div><div class="lbl">En proceso</div></div>
+              <div class="sum-card green"><div class="num" id="stat-ok">0</div><div class="lbl">Aprobadas / OK</div></div>
+            </div>
+
+            <div class="section-title">Nueva solicitud<span class="link" onclick="goView('new')">ver todas →</span></div>
+            <div class="tile-grid">
+              <div class="tile b" onclick="startNew('medica')">
+                <div class="ic">🩺</div>
+                <div class="t">Ausencia médica</div>
+                <div class="d">Certificado + control</div>
+              </div>
+              <div class="tile g" onclick="startNew('vacaciones')">
+                <div class="ic">🏖️</div>
+                <div class="t">Vacaciones</div>
+                <div class="d">Fecha inicio y fin</div>
+              </div>
+              <div class="tile wide y" onclick="startNew('especial')">
+                <div class="ic">⭐</div>
+                <div>
+                  <div class="t">Solicitud especial</div>
+                  <div class="d">Matrimonio, nacimiento, mudanza, examen, franco y más</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-title">Últimas solicitudes<span class="link" onclick="goView('requests')">ver todas →</span></div>
+            <div id="home-recent"></div>
+          </div>
+
+          <!-- NEW REQUEST VIEW -->
+          <div class="view" id="view-new">
+            <div class="back-row">
+              <div class="back-btn" onclick="goView('home')">←</div>
+              <div>
+                <div class="form-title" id="formTitle">Notificación de ausencia</div>
+              </div>
+            </div>
+
+            <div class="type-tabs">
+              <div class="type-tab" data-t="medica" onclick="setType('medica')">Médica</div>
+              <div class="type-tab" data-t="vacaciones" onclick="setType('vacaciones')">Vacaciones</div>
+              <div class="type-tab" data-t="especial" onclick="setType('especial')">Especial</div>
+            </div>
+
+            <form id="reqForm" onsubmit="return submitRequest(event)">
+
+              <!-- MEDICA -->
+              <div class="type-panel" id="panel-medica">
+                <div class="helper-note">📎 Adjuntá el certificado médico oficial. Es el único adjunto obligatorio de esta solicitud.</div>
+                <div class="field">
+                  <label>Fecha de inicio de la ausencia</label>
+                  <input type="date" id="m-fecha">
+                </div>
+                <div class="field">
+                  <label>Dirección para control médico</label>
+                  <input type="text" id="m-direccion" placeholder="Ej: Av. Pellegrini 1500, Rosario">
+                </div>
+                <div class="field">
+                  <label>Certificado médico oficial <span style="color:#c0392b">*</span></label>
+                  <div class="upload-box" onclick="triggerFile('m-cert')">
+                    <div class="ic">📷</div>
+                    <div class="t">Tocar para adjuntar el certificado médico</div>
+                    <div class="d">Se procesa con OCR automáticamente</div>
+                  </div>
+                  <input class="file-input" type="file" id="m-cert" accept="image/*,.pdf" capture="environment" onchange="handleFile(event,'m-cert-prev', true)">
+                  <div class="thumb-row" id="m-cert-prev"></div>
+                  <div class="ocr-box" id="m-ocr">
+                    <div class="h">Lectura OCR (IA)</div>
+                    <div id="m-ocr-text"></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Nota adicional <span class="opt">(opcional — texto o voz)</span></label>
+                  <textarea id="m-nota" placeholder="Ej: diagnóstico, indicaciones del médico, etc."></textarea>
+                  <div class="action-row">
+                    <div class="mini-btn rec" id="m-rec-btn" onclick="toggleVoice(this,'m-voice')">
+                      <span class="dot-rec"></span><span>🎙️ Nota de voz</span>
+                    </div>
+                  </div>
+                  <div id="m-voice"></div>
+                </div>
+              </div>
+
+              <!-- VACACIONES -->
+              <div class="type-panel" id="panel-vacaciones" style="display:none;">
+                <div class="helper-note">🏖️ Indicá el período solicitado. Podés adjuntar información de respaldo si corresponde.</div>
+                <div class="row2">
+                  <div class="field">
+                    <label>Fecha de inicio</label>
+                    <input type="date" id="v-inicio">
+                  </div>
+                  <div class="field">
+                    <label>Fecha de fin</label>
+                    <input type="date" id="v-fin">
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Adjuntar respaldo <span class="opt">(opcional)</span></label>
+                  <div class="upload-box" onclick="triggerFile('v-file')">
+                    <div class="ic">📎</div>
+                    <div class="t">Fotos, comprobantes o notas</div>
+                    <div class="d">JPG, PNG o PDF</div>
+                  </div>
+                  <input class="file-input" type="file" id="v-file" accept="image/*,.pdf" onchange="handleFile(event,'v-prev', false)">
+                  <div class="thumb-row" id="v-prev"></div>
+                </div>
+                <div class="field">
+                  <label>Nota adicional <span class="opt">(opcional — texto o voz)</span></label>
+                  <textarea id="v-nota" placeholder="Comentarios sobre el período solicitado"></textarea>
+                  <div class="action-row">
+                    <div class="mini-btn rec" id="v-rec-btn" onclick="toggleVoice(this,'v-voice')">
+                      <span class="dot-rec"></span><span>🎙️ Nota de voz</span>
+                    </div>
+                  </div>
+                  <div id="v-voice"></div>
+                </div>
+              </div>
+
+              <!-- ESPECIAL -->
+              <div class="type-panel" id="panel-especial" style="display:none;">
+                <div class="helper-note">⭐ Elegí el motivo de tu solicitud especial e indicá la fecha proyectada.</div>
+                <div class="special-grid" id="specialGrid">
+                  <div class="special-opt" data-s="matrimonio" onclick="setSpecial('matrimonio')"><span class="ic">💍</span>Matrimonio</div>
+                  <div class="special-opt" data-s="nacimiento" onclick="setSpecial('nacimiento')"><span class="ic">👶</span>Nacimiento</div>
+                  <div class="special-opt" data-s="mudanza" onclick="setSpecial('mudanza')"><span class="ic">📦</span>Mudanza</div>
+                  <div class="special-opt" data-s="examen" onclick="setSpecial('examen')"><span class="ic">📝</span>Examen</div>
+                  <div class="special-opt" data-s="fallecimiento" onclick="setSpecial('fallecimiento')"><span class="ic">🕊️</span>Fallecimiento familiar directo</div>
+                  <div class="special-opt" data-s="franco" onclick="setSpecial('franco')"><span class="ic">🗓️</span>Franco compensatorio</div>
+                </div>
+                <div class="field">
+                  <label>Fecha proyectada de ejecución</label>
+                  <input type="date" id="e-fecha">
+                </div>
+                <div class="field">
+                  <label>Adjuntar respaldo <span class="opt">(opcional)</span></label>
+                  <div class="upload-box" onclick="triggerFile('e-file')">
+                    <div class="ic">📷</div>
+                    <div class="t">Documento, foto o comprobante</div>
+                    <div class="d">Se analiza automáticamente con IA</div>
+                  </div>
+                  <input class="file-input" type="file" id="e-file" accept="image/*,.pdf" capture="environment" onchange="handleFile(event,'e-prev', true)">
+                  <div class="thumb-row" id="e-prev"></div>
+                  <div class="ocr-box" id="e-ocr">
+                    <div class="h">Lectura OCR (IA)</div>
+                    <div id="e-ocr-text"></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Nota adicional <span class="opt">(opcional — texto o voz)</span></label>
+                  <textarea id="e-nota" placeholder="Detalles adicionales del trámite"></textarea>
+                  <div class="action-row">
+                    <div class="mini-btn rec" id="e-rec-btn" onclick="toggleVoice(this,'e-voice')">
+                      <span class="dot-rec"></span><span>🎙️ Nota de voz</span>
+                    </div>
+                  </div>
+                  <div id="e-voice"></div>
+                </div>
+              </div>
+
+              <button class="submit-btn" type="submit">Enviar solicitud</button>
+            </form>
+          </div>
+
+          <!-- REQUESTS LIST VIEW -->
+          <div class="view" id="view-requests">
+            <div class="section-title" style="margin-top:2px;">Mis solicitudes</div>
+            <div id="requests-list"></div>
+          </div>
+
+          <!-- PROFILE VIEW -->
+          <div class="view" id="view-profile">
+            <div class="section-title" style="margin-top:2px;">Perfil</div>
+            <div class="profile-card">
+              <div class="av">MJ</div>
+              <div style="font-weight:700;font-size:14px;">Martín Juárez</div>
+              <div style="font-size:11px;color:var(--ink-soft);">Operario · Obra Ruta 9</div>
+            </div>
+            <div class="req-card">
+              <div class="info-row"><span>Legajo</span><span>04521</span></div>
+              <div class="info-row"><span>Sector</span><span>Obra vial</span></div>
+              <div class="info-row"><span>Supervisor</span><span>C. Fernández</span></div>
+              <div class="info-row"><span>Modo de carga</span><span id="prof-mode">Offline-first</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- BOTTOM NAV -->
+        <div class="bottom-nav">
+          <div class="nav-btn active" data-v="home" onclick="goView('home')">
+            <div class="ic">🏠</div><div class="lbl">Inicio</div>
+          </div>
+          <div class="nav-btn" data-v="requests" onclick="goView('requests')">
+            <div class="ic">📋</div><div class="lbl">Solicitudes</div>
+          </div>
+          <div class="nav-btn center" onclick="goView('new')">
+            <div class="ic">+</div><div class="lbl">Nueva</div>
+          </div>
+          <div class="nav-btn" data-v="profile" onclick="goView('profile')">
+            <div class="ic">👤</div><div class="lbl">Perfil</div>
+          </div>
+          <div class="nav-btn" onclick="openSheet()">
+            <div class="ic">🔄</div><div class="lbl">Sincronía</div>
+          </div>
+        </div>
+
+        <!-- TOAST -->
+        <div class="toast" id="toast"><span class="ic">✓</span><span id="toastText"></span></div>
+
+        <!-- SYNC SHEET -->
+        <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+        <div class="sheet" id="sheet">
+          <div class="sheet-handle"></div>
+          <h3>Radar de sincronización</h3>
+          <div class="d">Así funciona el pipeline híbrido: los datos se guardan en el dispositivo aunque no haya conexión, y se procesan con OCR + IA apenas se sincronizan.</div>
+
+          <div class="pipeline-step"><div class="pt">1</div><div class="tx"><b>Carga local (offline-first)</b><span>Fotos, texto y notas de voz quedan guardados en el celular del empleado.</span></div></div>
+          <div class="pipeline-step"><div class="pt">2</div><div class="tx"><b>Sincronización</b><span>Al detectar conexión, el sistema sube la información en segundo plano.</span></div></div>
+          <div class="pipeline-step"><div class="pt">3</div><div class="tx"><b>OCR + IA</b><span>Se extraen datos clave de documentos (fechas, firmas, diagnósticos, domicilios) para precargar el legajo.</span></div></div>
+          <div class="pipeline-step"><div class="pt">4</div><div class="tx"><b>Validación humana</b><span>RR.HH. revisa lo detectado antes de aprobar la solicitud.</span></div></div>
+
+          <div class="section-title" style="margin-top:6px;">Cola actual</div>
+          <div id="sheet-queue"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="tag">● Prototipo low-code</div>
+    <h3>Notas del diseño</h3>
+    <p>Vista pensada para el <b>empleado</b>, con carga desde celular o tablet. Cada trámite pide sólo lo esencial para no generar fricción, sin importar el nivel de alfabetización digital del usuario.</p>
+    <ul>
+      <li><b>Offline-first:</b> el formulario funciona sin conexión; los datos quedan en cola y se sincronizan solos (probá el switch "En línea / Sin conexión" arriba).</li>
+      <li><b>Pipeline híbrido OCR/IA:</b> las fotos de certificados y documentos se procesan automáticamente para precargar campos y agilizar la revisión de RR.HH.</li>
+      <li><b>Multiformato:</b> foto/documento, texto y nota de voz en cada trámite.</li>
+    </ul>
+    <div class="swatches">
+      <div class="sw" style="background:#FFFFFF;border:1px solid #ddd;"></div>
+      <div class="sw" style="background:#0A3D62;"></div>
+      <div class="sw" style="background:#1C77C3;"></div>
+      <div class="sw" style="background:#1E9E6D;"></div>
+      <div class="sw" style="background:#F4B400;"></div>
+    </div>
+    <div class="badgebar">
+      <span>Ausencia médica</span><span>Vacaciones</span><span>Matrimonio</span><span>Nacimiento</span><span>Mudanza</span><span>Examen</span><span>Fallecimiento</span><span>Franco comp.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  let online = true;
+  let currentType = 'medica';
+  let currentSpecial = 'matrimonio';
+  let requests = [
+    { id:-1, type:'medica', title:'Ausencia médica', dateInfo:'Desde el 03/05 · duración 10 días', atts:[], historic:true, semaforo:'verde', semLabel:'Notificada y recibida', status:'ok' },
+    { id:-2, type:'medica', title:'Ausencia médica', dateInfo:'Desde el 10/06 · duración 3 días', atts:[], historic:true, semaforo:'verde', semLabel:'Notificada y recibida', status:'ok' },
+    { id:-3, type:'medica', title:'Ausencia médica', dateInfo:'14/04 · duración 1 día', atts:[], historic:true, semaforo:'rojo', semLabel:'Sin justificar', status:'alerta' }
+  ];
+  let reqIdSeq = 1;
+
+  const specialLabels = {
+    matrimonio:'Matrimonio', nacimiento:'Nacimiento', mudanza:'Mudanza',
+    examen:'Examen', fallecimiento:'Fallecimiento familiar directo', franco:'Franco compensatorio'
+  };
+  const typeLabels = { medica:'Ausencia médica', vacaciones:'Vacaciones', especial:'Solicitud especial' };
+  const typeIcon = { medica:'🩺', vacaciones:'🏖️', especial:'⭐' };
+
+  function goView(v){
+    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+    const btn = document.querySelector('.nav-btn[data-v="'+v+'"]');
+    if(btn) btn.classList.add('active');
+    if(v==='requests') renderRequestsList();
+    if(v==='home') renderHomeRecent();
+  }
+
+  function startNew(type){
+    setType(type);
+    goView('new');
+  }
+
+  const formTitles = { medica:'Notificación de ausencia', vacaciones:'Nueva solicitud de vacaciones', especial:'Nueva solicitud especial' };
+
+  function setType(type){
+    currentType = type;
+    document.querySelectorAll('.type-tab').forEach(t=>t.classList.toggle('active', t.dataset.t===type));
+    document.querySelectorAll('.type-panel').forEach(p=>p.style.display='none');
+    document.getElementById('panel-'+type).style.display='block';
+    document.getElementById('formTitle').textContent = formTitles[type];
+  }
+  setType('medica');
+
+  function setSpecial(s){
+    currentSpecial = s;
+    document.querySelectorAll('.special-opt').forEach(o=>o.classList.toggle('active', o.dataset.s===s));
+  }
+  setSpecial('matrimonio');
+
+  function triggerFile(id){ document.getElementById(id).click(); }
+
+  function handleFile(evt, previewId, runOcr){
+    const files = evt.target.files;
+    if(!files || !files.length) return;
+    const prev = document.getElementById(previewId);
+    Array.from(files).forEach(file=>{
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const thumb = document.createElement('div');
+        thumb.className='thumb';
+        if(file.type.startsWith('image/')){
+          thumb.innerHTML = '<img src="'+e.target.result+'"><div class="rm" onclick="this.parentElement.remove()">✕</div>';
+        } else {
+          thumb.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--blue-soft);font-size:18px;">📄</div><div class="rm" onclick="this.parentElement.remove()">✕</div>';
+        }
+        prev.appendChild(thumb);
+      };
+      reader.readAsDataURL(file);
+    });
+    if(runOcr){
+      const ocrBoxId = previewId.replace('-prev','-ocr');
+      const ocrTextId = previewId.replace('-prev','-ocr-text');
+      const box = document.getElementById(ocrBoxId);
+      const txt = document.getElementById(ocrTextId);
+      txt.innerHTML = 'Analizando documento con OCR...';
+      box.classList.add('show');
+      setTimeout(()=>{
+        if(previewId==='m-cert-prev'){
+          txt.innerHTML = '<b>Detectado:</b> Certificado médico · apto reposo 48 hs · profesional matriculado. Se precargarán estos campos para la revisión de RR.HH.';
+        } else {
+          txt.innerHTML = '<b>Detectado:</b> documento con fecha y firma legibles. Datos disponibles para precarga en el legajo.';
+        }
+      }, 1300);
+    }
+  }
+
+  function toggleVoice(btn, targetId){
+    const active = btn.classList.toggle('active');
+    const span = btn.querySelector('span:last-child');
+    const target = document.getElementById(targetId);
+    if(active){
+      span.textContent = 'Grabando...';
+      btn.dataset.t0 = Date.now();
+    } else {
+      const secs = Math.max(2, Math.round((Date.now() - (btn.dataset.t0||Date.now()))/1000));
+      span.textContent = '🎙️ Nota de voz';
+      const chip = document.createElement('div');
+      chip.className='voice-chip';
+      let bars='';
+      for(let i=0;i<14;i++){ bars += '<i style="height:'+(4+Math.round(Math.random()*12))+'px"></i>'; }
+      chip.innerHTML = '<span class="wave">'+bars+'</span><span>Nota de voz · 0:'+String(secs).padStart(2,'0')+'</span>';
+      target.appendChild(chip);
+    }
+  }
+
+  function toggleConnection(){
+    online = !online;
+    const el = document.getElementById('connToggle');
+    const lbl = document.getElementById('connLabel');
+    el.classList.toggle('offline', !online);
+    lbl.textContent = online ? 'En línea' : 'Sin conexión';
+    document.getElementById('prof-mode').textContent = online ? 'Sincronizado' : 'Offline-first (en cola)';
+    if(online){
+      // process queued items
+      const queued = requests.filter(r=>r.status==='encola');
+      queued.forEach((r,i)=>{
+        setTimeout(()=>{ r.status='sync'; renderAll(); }, 300*(i+1));
+        setTimeout(()=>{ r.status='ok'; renderAll(); showToast(typeLabels[r.type]+' sincronizada y procesada por IA'); }, 300*(i+1)+1200);
+      });
+    }
+    renderAll();
+  }
+
+  function submitRequest(e){
+    e.preventDefault();
+    const atts = [];
+    let title = typeLabels[currentType];
+    let dateInfo = '';
+
+    if(currentType==='medica'){
+      const f = document.getElementById('m-fecha').value;
+      const dir = document.getElementById('m-direccion').value;
+      dateInfo = f ? ('Inicio: '+formatDate(f)) : 'Sin fecha indicada';
+      if(document.getElementById('m-cert-prev').children.length) atts.push('Certificado médico');
+      if(document.getElementById('m-nota').value) atts.push('Nota de texto');
+      if(document.getElementById('m-voice').children.length) atts.push('Nota de voz');
+      if(dir) atts.push('Dirección de control');
+    } else if(currentType==='vacaciones'){
+      const i = document.getElementById('v-inicio').value;
+      const f = document.getElementById('v-fin').value;
+      dateInfo = (i&&f) ? (formatDate(i)+' → '+formatDate(f)) : 'Período sin definir';
+      if(document.getElementById('v-prev').children.length) atts.push('Adjunto');
+      if(document.getElementById('v-nota').value) atts.push('Nota de texto');
+      if(document.getElementById('v-voice').children.length) atts.push('Nota de voz');
+    } else {
+      title = specialLabels[currentSpecial];
+      const f = document.getElementById('e-fecha').value;
+      dateInfo = f ? ('Fecha proyectada: '+formatDate(f)) : 'Sin fecha indicada';
+      if(document.getElementById('e-prev').children.length) atts.push('Adjunto');
+      if(document.getElementById('e-nota').value) atts.push('Nota de texto');
+      if(document.getElementById('e-voice').children.length) atts.push('Nota de voz');
+    }
+
+    const req = {
+      id: reqIdSeq++,
+      type: currentType,
+      title: title,
+      dateInfo: dateInfo,
+      atts: atts,
+      status: online ? 'sync' : 'encola',
+      created: new Date()
+    };
+    requests.unshift(req);
+
+    if(online){
+      setTimeout(()=>{ req.status='ok'; renderAll(); showToast(title+' sincronizada y procesada por IA'); }, 1400);
+    } else {
+      showToast(title+' guardada localmente · se sincronizará sin conexión');
+    }
+
+    e.target.reset();
+    document.querySelectorAll('.thumb-row').forEach(t=>t.innerHTML='');
+    document.querySelectorAll('.ocr-box').forEach(b=>b.classList.remove('show'));
+    document.querySelectorAll('#m-voice,#v-voice,#e-voice').forEach(v=>v.innerHTML='');
+
+    renderAll();
+    goView('requests');
+    return false;
+  }
+
+  function formatDate(iso){
+    if(!iso) return '';
+    const [y,m,d] = iso.split('-');
+    return d+'/'+m+'/'+y;
+  }
+
+  function statusLabel(s){
+    if(s==='encola') return 'En cola (sin conexión)';
+    if(s==='sync') return 'Sincronizando';
+    return 'Procesada por IA';
+  }
+  function statusClass(s){
+    if(s==='encola') return 'encola';
+    if(s==='sync') return 'sync';
+    return 'ok';
+  }
+  function statusWidth(s){
+    if(s==='encola') return '20%';
+    if(s==='sync') return '65%';
+    return '100%';
+  }
+
+  function reqCardHtml(r){
+    if(r.historic){
+      const dotColor = r.semaforo==='verde' ? 'var(--green)' : '#C0392B';
+      const pillClass = r.semaforo==='verde' ? 'ok' : 'rojo';
+      return '<div class="req-card">'+
+        '<div class="req-top">'+
+          '<div><div class="req-type">'+typeIcon[r.type]+' '+r.title+'</div><div class="req-date">'+r.dateInfo+'</div></div>'+
+          '<div class="status-pill '+pillClass+'" style="display:flex;align-items:center;gap:6px;">'+
+            '<span class="semaforo-dot" style="background:'+dotColor+'"></span>'+r.semLabel+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }
+    const attsHtml = r.atts.length ? '<div class="req-atts">'+r.atts.map(a=>'<span class="att-chip">📎 '+a+'</span>').join('')+'</div>' : '';
+    const aiHtml = r.status==='ok' ? '<div class="req-ai show"><b>IA:</b> datos extraídos y precargados para revisión de RR.HH.</div>' : '';
+    return '<div class="req-card">'+
+      '<div class="req-top">'+
+        '<div><div class="req-type">'+typeIcon[r.type]+' '+r.title+'</div><div class="req-date">'+r.dateInfo+'</div></div>'+
+        '<div class="status-pill '+statusClass(r.status)+'">'+statusLabel(r.status)+'</div>'+
+      '</div>'+
+      '<div class="req-progress"><i style="width:'+statusWidth(r.status)+'"></i></div>'+
+      attsHtml + aiHtml +
+    '</div>';
+  }
+
+  function renderRequestsList(){
+    const el = document.getElementById('requests-list');
+    if(!requests.length){
+      el.innerHTML = '<div class="empty-state"><div class="ic">🗂️</div><div class="t">Todavía no hay solicitudes</div><div class="d">Tocá "Nueva" para cargar la primera</div></div>';
+      return;
+    }
+    el.innerHTML = requests.map(reqCardHtml).join('');
+  }
+
+  function renderHomeRecent(){
+    const el = document.getElementById('home-recent');
+    if(!requests.length){
+      el.innerHTML = '<div class="empty-state"><div class="ic">📥</div><div class="t">Sin actividad reciente</div><div class="d">Tus próximas solicitudes van a aparecer acá</div></div>';
+      return;
+    }
+    el.innerHTML = requests.slice(0,3).map(reqCardHtml).join('');
+  }
+
+  function renderRadar(){
+    const pending = requests.filter(r=>r.status!=='ok' && !r.historic).length;
+    const pill = document.getElementById('radarPill');
+    const ring = document.getElementById('radarRing');
+    const text = document.getElementById('radarText');
+    const count = document.getElementById('radarCount');
+    count.textContent = pending;
+    if(pending===0){
+      pill.classList.add('synced');
+      text.textContent = 'Radar de sincronización: sin pendientes';
+    } else {
+      pill.classList.remove('synced');
+      text.textContent = online ? 'Sincronizando datos con el servidor...' : 'Guardado local · esperando conexión';
+    }
+  }
+
+  function renderStats(){
+    document.getElementById('stat-total').textContent = requests.length;
+    document.getElementById('stat-pend').textContent = requests.filter(r=>r.status!=='ok' && !r.historic).length;
+    document.getElementById('stat-ok').textContent = requests.filter(r=>r.status==='ok').length;
+  }
+
+  function renderSheetQueue(){
+    const el = document.getElementById('sheet-queue');
+    if(!requests.length){
+      el.innerHTML = '<div style="font-size:11px;color:var(--ink-faint);">No hay elementos en la cola.</div>';
+      return;
+    }
+    el.innerHTML = requests.map(r=>{
+      let pillHtml;
+      if(r.historic){
+        const dotColor = r.semaforo==='verde' ? 'var(--green)' : '#C0392B';
+        const pillClass = r.semaforo==='verde' ? 'ok' : 'rojo';
+        pillHtml = '<div class="status-pill '+pillClass+'" style="display:flex;align-items:center;gap:6px;"><span class="semaforo-dot" style="background:'+dotColor+'"></span>'+r.semLabel+'</div>';
+      } else {
+        pillHtml = '<div class="status-pill '+statusClass(r.status)+'">'+statusLabel(r.status)+'</div>';
+      }
+      return '<div class="req-card" style="padding:10px 12px;">'+
+        '<div class="req-top"><div class="req-type" style="font-size:11.5px;">'+typeIcon[r.type]+' '+r.title+'</div>'+
+        pillHtml+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  function renderAll(){
+    renderRadar();
+    renderStats();
+    renderRequestsList();
+    renderHomeRecent();
+    renderSheetQueue();
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    document.getElementById('toastText').textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2600);
+  }
+
+  function openSheet(){
+    document.getElementById('sheetOverlay').classList.add('show');
+    document.getElementById('sheet').classList.add('show');
+    renderSheetQueue();
+  }
+  function closeSheet(){
+    document.getElementById('sheetOverlay').classList.remove('show');
+    document.getElementById('sheet').classList.remove('show');
+  }
+
+  renderAll();
+</script>
+</body>
+</html>
